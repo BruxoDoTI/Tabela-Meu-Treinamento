@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planilha de Treino PRO - V7 (Científica) - Refatorada</title>
+<meta name="version" content="1.0 (23-11-2025 10:00:00 -03)">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Estilos globais e de layout */
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,sans-serif;}
+body{background:#f6f8fb;color:#111;min-height:100vh;}
+button{cursor:pointer;}
+header{background:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+header h1{font-size:20px;}
+header .userbox{display:flex;gap:10px;align-items:center;}
+.user-status{font-size:13px;color:#7a8798;}
+.container{max-width:1200px;margin:20px auto;padding:0 20px;display:none;}
+.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:15px;gap:10px;}
+.topbar .flex{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.layout{display:grid;grid-template-columns:1fr 360px;gap:20px;}
+@media(max-width:980px){.layout{grid-template-columns:1fr;}}
+.card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 6px 16px rgba(20,40,80,0.04);margin-bottom:20px;}
+.card h3{margin-bottom:10px;}
+.note, .small{font-size:12px;color:#7a8798;}
+.volume{margin-top:10px;font-weight:600; line-height: 1.6;} 
+.btn{padding:8px 14px;border:none;border-radius:8px;font-weight:600;color:#fff;background:#3b82f6;transition:0.2s; white-space: nowrap;}
+.btn:hover{opacity:0.9;}
+.btn.secondary{background:#f1f5f9;color:#111;border:1px solid #d1d5db;}
+.btn.warn{background:#16a34a;}
+.btn.danger{background:#ef4444;}
+.btn.small-icon {padding: 3px 6px; font-size: 10px; margin-left: 5px;}
+.btn.edit-name {background: #22c55e;}
+.btn.edit-group {background: #3b82f6;}
+.btn.delete {background: #ef4444;}
+.btn.toggle-type {background: #f97316;} 
+
+.tabs{display:flex;gap:10px;margin-bottom:12px;overflow-x:auto;padding-bottom:5px;}
+.tab{padding:8px 14px;border-radius:10px;background:#f1f7ff;color:#033;cursor:pointer;border:1px solid transparent;white-space:nowrap;transition:0.2s;}
+.tab.active{background:linear-gradient(90deg,#a7c6ff,#5b9cff);color:white;border-color:rgba(0,0,0,0.06);}
+.tab:hover:not(.active){background:#e6eefc;}
+table{width:100%;border-collapse:collapse;margin-bottom:10px;}
+th,td{padding:10px;text-align:left;border-bottom:1px solid #eef4ff;font-size:14px;}
+th{background:#f6f9ff;color:#334155;font-weight:600;}
+
+/* ESTILOS DA TABELA DE TREINO */
+.input-control {display: flex; align-items: center; gap: 5px; justify-content: flex-start;}
+.input-control input[type="number"] {width: 60px;padding: 4px;border-radius: 6px;border: 1px solid #e6eefc;text-align: center;}
+.input-control select {padding: 4px; border-radius: 6px; border: 1px solid #e6eefc;}
+.action-buttons {display: flex;gap: 5px;}
+.exercise-name-box {display: flex;justify-content: space-between;align-items: center;margin-bottom: 5px;}
+.volume-group-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.8;
+}
+.volume-group-list li {
+    font-weight: 400;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+}
+.volume-group-list strong {
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+/* Campo de carga para peso corporal */
+.bodyweight-label {
+    padding: 6px 10px;
+    background: #ecfdf5;
+    color: #065f46;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Estilo da lista de treinos com datas */
+.workout-item {
+    padding: 10px 12px;
+    border: 1px solid #e0e7ff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.workout-item:hover {
+    background: #f8faff;
+}
+.workout-item.active {
+    border-color: #3b82f6;
+    background: #eef4ff;
+}
+.workout-actions {
+    display: flex;
+    gap: 5px;
+}
+
+/* Estilos de Login/Cadastro/Info (Mantidos) */
+#loginBox, #registerBox, #userInfoBox{max-width:360px;margin:60px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 6px 16px rgba(20,40,80,0.08);}
+#loginBox h2, #registerBox h2, #userInfoBox h2{text-align:center;margin-bottom:20px;}
+#loginBox input, #registerBox input, #userInfoBox input{width:100%;padding:10px;margin-bottom:12px;border-radius:6px;border:1px solid #d1d5db;}
+#registerBox input[type="number"], #userInfoBox input[type="number"] {width: 100%;}
+#userInfoBox .input-group{margin-bottom:12px;}
+#userInfoBox .input-group label{display:block;font-size:12px;color:#7a8798;margin-bottom:4px;}
+.flex-btns{display:flex;gap:10px;justify-content:center;margin-top:10px;}
+.note-center{text-align:center;margin-top:10px;font-size:13px;color:#7a8798;}
+#panoramaModal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
+    display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; padding: 20px;
+}
+#panoramaContent {
+    background: #fff; padding: 25px; border-radius: 12px; width: 90%; max-width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); position: relative; max-height: 90vh; overflow-y: auto;
+}
+.panorama-section { margin-bottom: 20px;}
+.panorama-section h4 { color: #3b82f6; margin-bottom: 8px; font-size: 16px; border-left: 3px solid #3b82f6; padding-left: 8px;}
+.panorama-user-data p { font-size: 14px; margin: 4px 0;}
+
+/* ESTILO RESPONSIVO PARA MOBILE (CORRIGIDO) */
+@media screen and (max-width: 600px) {
+    table, thead, tbody, th, td, tr { 
+        display: block; 
+    }
+    thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    tr { border: 1px solid #ccc; margin-bottom: 10px; border-radius: 8px; }
+    td { 
+        border: none;
+        border-bottom: 1px solid #eee; 
+        position: relative;
+        padding-left: 50%; 
+        text-align: right;
+    }
+    td:before { 
+        position: absolute;
+        top: 10px;
+        left: 6px;
+        width: 45%; 
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 600;
+        color: #334155;
+        content: attr(data-label); 
+    }
+    tr td:first-child {
+        padding-left: 10px;
+        text-align: left;
+    }
+    tr td:first-child:before {
+        content: ""; 
+    }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏋️ Planilha de Treino PRO</h1>
+  <div class="userbox">
+    <button id="btnUserInfo" class="btn secondary" style="display:none;padding:5px 10px;font-size:12px;">Usuário</button>
+    <div id="userStatus" class="user-status">Offline</div>
+    <button id="btnLogout" class="btn danger" style="display:none;padding:5px 10px;font-size:12px;">Sair</button>
+  </div>
+</header>
+
+<div id="loginBox">
+  <h2>Acesso Rápido</h2>
+  <input type="text" id="cpfLogin" placeholder="CPF (apenas números)">
+  <div class="flex-btns">
+    <button id="btnLogin" class="btn">Entrar</button> 
+    <button id="btnGoRegister" class="btn secondary">Cadastrar</button>
+  </div>
+  <div id="loginMsg" class="note-center">Digite seu CPF cadastrado para acessar.</div>
+</div>
+
+<div id="registerBox" style="display:none;">
+  <h2>Cadastro</h2>
+  <input type="text" id="nameRegister" placeholder="Nome completo">
+  <input type="text" id="cpfRegister" placeholder="CPF (apenas números)">
+  <div style="display:flex;gap:5px;margin-bottom:10px;">
+    <input type="number" id="dayRegister" placeholder="Dia" min="1" max="31">
+    <input type="number" id="monthRegister" placeholder="Mês" min="1" max="12">
+    <input type="number" id="yearRegister" placeholder="Ano" min="1900" max="2100">
+  </div>
+  <input type="number" id="heightRegister" placeholder="Altura (cm)">
+  <input type="number" id="weightRegister" placeholder="Peso (kg)">
+  <input type="password" id="passwordRegister" placeholder="Senha (Mantenha anotada!)">
+  <div class="flex-btns">
+    <button id="btnRegister" class="btn">Cadastrar</button>
+    <button id="btnGoLogin" class="btn secondary">Voltar</button>
+  </div>
+  <div id="registerMsg" class="note-center"></div>
+</div>
+
+<div id="userInfoBox" style="display:none;">
+    <h2>Meus Dados</h2>
+    <div class="input-group">
+        <label for="nameUser">Nome Completo</label>
+        <input type="text" id="nameUser" placeholder="Nome completo">
+    </div>
+    <div class="input-group">
+        <label for="cpfUser">CPF</label>
+        <input type="text" id="cpfUser" readonly disabled>
+    </div>
+    <div class="input-group">
+        <label>Data de Nascimento</label>
+        <div style="display:flex;gap:5px;">
+            <input type="number" id="dayUser" placeholder="Dia" min="1" max="31">
+            <input type="number" id="monthUser" placeholder="Mês" min="1" max="12">
+            <input type="number" id="yearUser" placeholder="Ano" min="1900" max="2100">
+        </div>
+    </div>
+    <div class="input-group">
+        <label for="heightUser">Altura (cm)</label>
+        <input type="number" id="heightUser" placeholder="Altura (cm)">
+    </div>
+    <div class="input-group">
+        <label for="weightUser">Peso (kg)</label>
+        <input type="number" id="weightUser" placeholder="Peso (kg)">
+    </div>
+    <div class="input-group">
+        <label for="passwordUser">Nova Senha (Opcional)</label>
+        <input type="password" id="passwordUser" placeholder="Preencha apenas para mudar a senha">
+    </div>
+
+    <div class="flex-btns">
+        <button id="btnUpdateUser" class="btn warn">Atualizar Dados</button>
+        <button id="btnCloseUser" class="btn secondary">Fechar</button>
+    </div>
+    <div id="userMsg" class="note-center"></div>
+</div>
+
+<div class="container">
+  <div class="topbar">
+    <div class="flex">
+      <div class="note">Treino atual:</div>
+      <div id="currentWorkoutName" style="font-weight:700">—</div>
+    </div>
+    <div class="flex">
+      <button id="btnNewWorkout" class="btn secondary">+ Novo treino</button>
+      <button id="btnAddMobility" class="btn secondary" style="display:none">+ Mobilidade</button> 
+      <button id="btnAddStretching" class="btn secondary" style="display:none">+ Alongamento</button> 
+      <button id="btnAddExercise" class="btn secondary" style="display:none">+ Adicionar exercício</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="card">
+        <div class="tabs" id="tabs"></div>
+        <div id="tableArea"></div>
+      </div>
+      <div class="card">
+        <h3>📊 Volume de Repetições</h3>
+        <div id="volumeArea" class="volume">Selecione um treino e marque séries concluídas para ver o volume.</div>
+      </div>
+    </div>
+    <aside class="sidebar">
+      <div class="card">
+        <h3>Meus Treinos</h3>
+        <div class="workout-list" id="workoutList">
+            <div class="note-center">Nenhum treino. Crie um novo!</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div id="panoramaModal">
+    <div id="panoramaContent">
+        <h3 id="panoramaTitle"></h3>
+        
+        <div class="panorama-section">
+            <h4>Modelo e Foco do Treino</h4>
+            <div id="panoramaModelData" class="panorama-user-data"></div>
+        </div>
+        
+        <div class="panorama-section">
+            <h4>Volume Estimado por Grupo Muscular (Treino Completo)</h4>
+            <div id="panoramaVolume"></div>
+        </div>
+        
+        <div class="panorama-section">
+            <h4>Exercícios no Treino</h4>
+            <div id="panoramaExerciseList"></div> 
+        </div>
+
+        <div class="panorama-section">
+            <h4>Dados do Usuário e Período</h4>
+            <div id="panoramaUserData" class="panorama-user-data"></div>
+        </div>
+        
+        <div class="flex-btns">
+             <button id="btnClosePanorama" class="btn secondary">Fechar</button>
+             <button id="btnSelectWorkout" class="btn warn">Selecionar e Iniciar Treino</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ===========================
+   DADOS E UTILITÁRIOS GLOBAIS
+   =========================== */
+
+let user = null;
+let workouts = {};
+let currentWorkout = null;
+let currentDivision = null;
+
+const muscleGroups = [
+    "Costas (Dorsais)", "Peito (Peitorais)", "Ombros (Deltóides)",
+    "Bíceps", "Tríceps", "Antebraço",
+    "Quadríceps", "Posterior de Coxa", "Glúteos", "Panturrilhas",
+    "Abdômen", "Lombar", "Core",
+    "Estabilizadores", "Mobilidade"
+];
+
+const muscleGroupsMap = muscleGroups.map((g, i) => `${i + 1}. ${g}`).join('\n');
+const selectionPromptMessage = 
+    "✅ **ASSINALAR GRUPOS MUSCULARES** ✅\n\n" +
+    "Digite os NÚMEROS dos grupos que você quer associar a este exercício, separados por VÍRGULA.\n\n" +
+    "Exemplo: 1, 3, 5\n\n" +
+    "--------------------------------------\n" +
+    muscleGroupsMap + 
+    "\n--------------------------------------\n";
+
+/* ======= MODELOS E GERADORES DE DIVISÕES =======
+   Aqui mapeamos modelos para "bases" e geramos
+   divisão real de acordo com o número de dias.
+================================================= */
+
+const MODEL_DEFINITIONS = {
+    'FullBody': {
+        name: 'Full Body (Corpo Inteiro)',
+        base: ['Full Body'],
+        minDays: 1,
+        supportsDays: (d) => d >= 1 && d <= 7 // always ok
+    },
+    'UpperLower': {
+        name: 'Upper/Lower (Superior/Inferior)',
+        base: ['Superior', 'Inferior'],
+        minDays: 1,
+        supportsDays: (d) => d >= 1 && d <= 7
+    },
+    'PPL': {
+        name: 'PPL (Push / Pull / Legs)',
+        base: ['Push', 'Pull', 'Legs'],
+        minDays: 1,
+        supportsDays: (d) => d >= 1 && d <= 7
+    },
+    'ABC': {
+        name: 'ABC (Dia A / Dia B / Dia C)',
+        base: ['Dia A', 'Dia B', 'Dia C'],
+        minDays: 1,
+        supportsDays: (d) => d >= 1 && d <= 7
+    },
+    'ABC_2x': {
+        name: 'ABC 2× (6 Dias)',
+        base: ['Dia A', 'Dia B', 'Dia C', 'Dia A', 'Dia B', 'Dia C'],
+        minDays: 3,
+        supportsDays: (d) => d >= 3 && d <= 7
+    },
+    'BroSplit': {
+        name: 'Bro Split (Peito/Costas/Ombro/Pernas/Braços)',
+        base: ['Peito', 'Costas', 'Ombros', 'Pernas', 'Braços'],
+        minDays: 1,
+        supportsDays: (d) => d >= 1 && d <= 7
+    }
+};
+
+// Gera divisionKeys a partir de um modelo e número de dias.
+// Estratégia: cicla pela base até preencher 'days' chaves.
+// Se for ABC_2x e days < 6, reduz para os primeiros 'days' elementos.
+function generateDivisionKeysForModel(modelKey, days) {
+    const def = MODEL_DEFINITIONS[modelKey];
+    if (!def) return [];
+
+    const base = Array.isArray(def.base) ? def.base.slice() : ['Day'];
+    const keys = [];
+    let idx = 0;
+    while (keys.length < days) {
+        // Para tentar evitar nomes idênticos repetidos sem contexto, 
+        // se base tem repetições (como ABC_2x) vamos usar exatamente.
+        const candidate = base[idx % base.length];
+        // Evita criar chaves iguais seguidas: se já existe a mesma string, acrescenta um sufixo numérico
+        let finalName = candidate;
+        // Se já existe e base é curta, vamos alternar com (1),(2) para manter distinção
+        if (keys.includes(finalName)) {
+            // Conta quantas vezes já existe
+            let count = keys.filter(k => k === finalName).length;
+            finalName = `${finalName} ${count + 1}`;
+        }
+        keys.push(finalName);
+        idx++;
+        // Se base tem tamanho 1 e days > 1, apenas repetiremos o mesmo nome (Full Body xN) - é esperado
+    }
+    return keys;
+}
+
+// Gera divisionKeys para "Estrutura Livre" (A..G) com 'days' letras
+function generateFreeStructureKeys(days) {
+    const letters = ['A','B','C','D','E','F','G'];
+    return letters.slice(0, Math.max(1, Math.min(7, days))).map(l => `Dia ${l}`);
+}
+
+// Sugestões inteligentes de modelos com base no número de dias
+function suggestModels(days) {
+    const suggestions = [];
+
+    // Prioriza modelos coerentes
+    if (days === 1) {
+        suggestions.push('FullBody');
+        suggestions.push('Personalizado');
+        suggestions.push('Free');
+    } else if (days === 2) {
+        suggestions.push('UpperLower');
+        suggestions.push('FullBody');
+        suggestions.push('Personalizado');
+        suggestions.push('Free');
+    } else if (days === 3) {
+        suggestions.push('PPL');
+        suggestions.push('ABC');
+        suggestions.push('FullBody');
+        suggestions.push('Personalizado');
+        suggestions.push('Free');
+    } else if (days === 4) {
+        suggestions.push('UpperLower');
+        suggestions.push('PPL');
+        suggestions.push('Personalizado');
+        suggestions.push('Free');
+    } else if (days === 5) {
+        suggestions.push('BroSplit');
+        suggestions.push('Personalizado');
+        suggestions.push('Free');
+    } else if (days === 6) {
+        suggestions.push('ABC_2x');
+        suggestions.push('PPL');
+        suggestions.push('Personalizado');
+        suggestions.push('Free');
+    } else if (days === 7) {
+        suggestions.push('Personalizado');
+        suggestions.push('Free');
+        suggestions.push('PPL');
+        suggestions.push('FullBody');
+    }
+
+    // Remove duplicatas e devolve
+    return [...new Set(suggestions)];
+}
+
+/* =========================
+   REFERÊNCIAS DOM E HELPERS
+   ========================= */
+
+const loginBox = document.getElementById('loginBox');
+const registerBox = document.getElementById('registerBox');
+const userInfoBox = document.getElementById('userInfoBox');
+const container = document.querySelector('.container');
+const tabs = document.getElementById('tabs');
+const tableArea = document.getElementById('tableArea');
+const volumeArea = document.getElementById('volumeArea');
+const currentWorkoutName = document.getElementById('currentWorkoutName');
+const workoutList = document.getElementById('workoutList');
+const userStatus = document.getElementById('userStatus');
+const btnNewWorkout = document.getElementById('btnNewWorkout');
+const btnAddMobility = document.getElementById('btnAddMobility'); 
+const btnAddStretching = document.getElementById('btnAddStretching'); 
+const btnAddExercise = document.getElementById('btnAddExercise');
+const loginMsg = document.getElementById('loginMsg');
+const registerMsg = document.getElementById('registerMsg');
+const userMsg = document.getElementById('userMsg');
+const btnLogout = document.getElementById('btnLogout');
+const btnLogin = document.getElementById('btnLogin');
+const btnRegister = document.getElementById('btnRegister');
+const btnGoRegister = document.getElementById('btnGoRegister');
+const btnGoLogin = document.getElementById('btnGoLogin');
+const btnUserInfo = document.getElementById('btnUserInfo');
+const btnCloseUser = document.getElementById('btnCloseUser');
+const btnUpdateUser = document.getElementById('btnUpdateUser');
+
+const cpfLogin = document.getElementById('cpfLogin'); 
+const nameRegister = document.getElementById('nameRegister');
+const cpfRegister = document.getElementById('cpfRegister');
+const passwordRegister = document.getElementById('passwordRegister');
+const dayRegister = document.getElementById('dayRegister');
+const monthRegister = document.getElementById('monthRegister');
+const yearRegister = document.getElementById('yearRegister');
+const heightRegister = document.getElementById('heightRegister');
+const weightRegister = document.getElementById('weightRegister');
+
+const nameUser = document.getElementById('nameUser');
+const cpfUser = document.getElementById('cpfUser');
+const dayUser = document.getElementById('dayUser');
+const monthUser = document.getElementById('monthUser');
+const yearUser = document.getElementById('yearUser');
+const heightUser = document.getElementById('heightUser');
+const weightUser = document.getElementById('weightUser');
+const passwordUser = document.getElementById('passwordUser');
+
+const panoramaModal = document.getElementById('panoramaModal');
+const panoramaTitle = document.getElementById('panoramaTitle');
+const panoramaVolume = document.getElementById('panoramaVolume');
+const panoramaUserData = document.getElementById('panoramaUserData');
+const panoramaExerciseList = document.getElementById('panoramaExerciseList');
+const panoramaModelData = document.getElementById('panoramaModelData');
+const btnClosePanorama = document.getElementById('btnClosePanorama');
+const btnSelectWorkout = document.getElementById('btnSelectWorkout');
+
+/* ===========================
+   PERSISTÊNCIA E FUNÇÕES ÚTEIS
+   =========================== */
+
+function saveWorkouts() {
+    if (user) {
+        localStorage.setItem('workouts_' + user, JSON.stringify(workouts));
+    }
+}
+
+function saveUserData(cpf, data) {
+    localStorage.setItem('user_' + cpf, JSON.stringify(data));
+}
+
+function getUserData(cpf) {
+    const data = localStorage.getItem('user_' + cpf);
+    return data ? JSON.parse(data) : null;
+}
+
+function validateCPF(cpf) {
+    return /^\d{11}$/.test(cpf);
+}
+
+function normalizeCPF(cpf) {
+    return cpf.trim().replace(/\D/g, '');
+}
+
+function parseMuscleGroupSelection(selection) {
+    if (!selection) return [];
+
+    const indices = selection
+        .split(',')
+        .map(s => parseInt(s.trim()))
+        .filter(n => !isNaN(n) && n >= 1 && n <= muscleGroups.length);
+
+    return [...new Set(indices.map(i => muscleGroups[i - 1]))];
+}
+
+function formatDate(dateString) {
+    if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return 'N/A';
+    const parts = dateString.split('-');
+    return `${parts[2]}/${parts[1]}/${parts[0]}`; 
+}
+
+/* =======================
+   CÁLCULO DE VOLUME
+   ======================= */
+
+function calculateVolumeForWorkout(workoutName, onlyDone = true) {
+    const workoutData = workouts[workoutName];
+    if (!workoutData || !workoutData.meta || !workoutData.meta.divisionKeys) return { totalVolume: 0, volumeByGroup: {} };
+
+    const volumeByGroup = {};
+    let totalVolume = 0;
+
+    const mainDivisionKeys = workoutData.meta.divisionKeys.filter(key => 
+        !key.startsWith('Mobilidade:') && !key.startsWith('Alongamento:')
+    );
+
+    mainDivisionKeys.forEach(divisionKey => {
+        const exercises = workoutData[divisionKey] || [];
+        exercises.forEach(ex => {
+            const seriesDone = ex.seriesDone || 0;
+            const targetSets = parseInt(ex.sets) || 0;
+            const targetReps = parseInt(ex.reps) || 0;
+            
+            const setsToCount = onlyDone ? seriesDone : targetSets;
+            const repVolume = setsToCount * targetReps;
+            
+            totalVolume += repVolume;
+                
+            if (Array.isArray(ex.groups) && ex.groups.length > 0) {
+                ex.groups.forEach(group => {
+                    if (group !== 'Mobilidade') {
+                        volumeByGroup[group] = (volumeByGroup[group] || 0) + repVolume;
+                    }
+                });
+            }
+        });
+    });
+
+    return { totalVolume, volumeByGroup };
+}
+
+/* =======================
+   RENDERIZAÇÃO E UI
+   ======================= */
+
+window.deleteWorkout = (e, t) => {
+    e.stopPropagation(); 
+    if (confirm(`Deseja realmente excluir o treino "${t}"?`)) {
+        delete workouts[t];
+        
+        const remainingWorkouts = Object.keys(workouts).filter(k => workouts[k] && workouts[k].meta); 
+        if (currentWorkout === t) {
+            currentWorkout = remainingWorkouts.length > 0 ? remainingWorkouts[0] : null;
+        }
+        
+        saveWorkouts();
+        renderWorkoutList();
+        if (currentWorkout) { 
+            const workoutData = workouts[currentWorkout];
+            currentDivision = (workoutData.meta.divisionKeys.includes(currentDivision) && currentDivision) 
+                ? currentDivision 
+                : workoutData.meta.divisionKeys[0]; 
+            renderTabs(); 
+        } else { 
+            currentDivision = null; 
+            renderTable(); 
+            calculateVolume(); 
+        }
+    }
+};
+
+function renderWorkoutList() {
+    workoutList.innerHTML = '';
+    const workoutNames = Object.keys(workouts).filter(k => workouts[k] && workouts[k].meta); 
+
+    if (workoutNames.length === 0) {
+        workoutList.innerHTML = '<div class="note-center">Nenhum treino. Crie um novo!</div>';
+        currentWorkoutName.textContent = '—';
+        tabs.innerHTML = '';
+        currentWorkout = null; 
+        currentDivision = null; 
+        renderTable(); 
+        calculateVolume();
+        
+        // Esconde botões de adição se não houver treino ativo
+        btnAddExercise.style.display = 'none';
+        btnAddMobility.style.display = 'none';
+        btnAddStretching.style.display = 'none';
+        return;
+    }
+    
+    // Mostra botões de adição
+    btnAddExercise.style.display = 'inline-block';
+    btnAddMobility.style.display = 'inline-block';
+    btnAddStretching.style.display = 'inline-block';
+
+    
+    if (!currentWorkout || !workouts.hasOwnProperty(currentWorkout) || !workouts[currentWorkout].meta) {
+         currentWorkout = workoutNames[0] || null;
+    }
+    
+    if(currentWorkout && workouts[currentWorkout]) {
+        const keys = workouts[currentWorkout].meta.divisionKeys || [];
+        if (!currentDivision || !keys.includes(currentDivision)) {
+            currentDivision = keys[0] || null; 
+        }
+    } else {
+        currentDivision = null;
+    }
+    
+    workoutNames.forEach(t => {
+        const workoutData = workouts[t];
+        const meta = workoutData.meta || { startDate: 'N/A', endDate: 'N/A', divisionModel: 'N/A' };
+        
+        const start = formatDate(meta.startDate);
+        const end = formatDate(meta.endDate);
+        const modelLabel = meta.customModelLabel ? meta.customModelLabel : (MODEL_DEFINITIONS[meta.divisionModel]?.name || meta.divisionModel);
+
+
+        const div = document.createElement('div');
+        div.className = 'workout-item' + (t === currentWorkout ? ' active' : '');
+        div.onclick = () => {
+            currentWorkout = t;
+            currentDivision = workouts[t].meta.divisionKeys[0] || null;
+            renderWorkoutList(); // Redesenha para ativar a classe
+            showWorkoutPanorama(t); 
+        };
+
+        div.innerHTML = `
+            <div style="flex-grow: 1;">
+                <strong>${t}</strong>
+                <div class="note">Modelo: ${modelLabel} | Período: ${start} até ${end}</div>
+            </div>
+            <div class="workout-actions">
+                <button class="btn secondary small-icon" onclick="event.stopPropagation(); editWorkoutDates('${t}')" title="Editar Datas">📅</button>
+                <button class="btn danger small-icon" onclick="deleteWorkout(event, '${t}')" title="Excluir">X</button>
+            </div>
+        `;
+        
+        workoutList.appendChild(div);
+    });
+    
+    currentWorkoutName.textContent = currentWorkout || '—';
+    if(currentWorkout) renderTabs(); 
+}
+
+function renderTabs() {
+    tabs.innerHTML = '';
+    if (!currentWorkout || !workouts[currentWorkout]) return;
+
+    const divisions = workouts[currentWorkout].meta.divisionKeys || [];
+    
+    if (!currentDivision || !divisions.includes(currentDivision)) {
+        currentDivision = divisions[0] || null;
+    }
+
+    if (currentDivision) {
+        divisions.forEach(d => {
+            const div = document.createElement('div');
+            div.className = 'tab' + (d === currentDivision ? ' active' : '');
+            
+            let icon = '';
+            if (d.startsWith('Mobilidade:')) { icon = '🤸 '; }
+            else if (d.startsWith('Alongamento:')) { icon = '🧘 '; }
+            
+            // Exibir apenas a parte antes de ' : ' para adequar nomes que possam ter sufixos
+            const displayLabel = d.includes(':') ? d.split(': ')[0] : d;
+            div.textContent = icon + displayLabel;
+
+            div.onclick = () => {
+                currentDivision = d;
+                renderTabs(); 
+            };
+            tabs.appendChild(div);
+        });
+    }
+    renderTable();
+}
+
+function renderTable() {
+    if (!currentWorkout || !workouts[currentWorkout] || !currentDivision) {
+        tableArea.innerHTML = '<div class="note-center">Selecione ou crie um treino para começar.</div>';
+        calculateVolume();
+        return;
+    }
+
+    const exercises = workouts[currentWorkout][currentDivision] || [];
+    const isPrepRecovery = currentDivision.startsWith('Mobilidade:') || currentDivision.startsWith('Alongamento:');
+    
+    let areaTitle = isPrepRecovery ? `<h4 style="margin-bottom: 15px; color: #16a34a;">Foco: ${currentDivision.split(': ')[0]}</h4>` : '';
+
+    if (exercises.length === 0) {
+        tableArea.innerHTML = areaTitle + `<div class="note-center">Nenhum exercício em **${currentDivision.split(': ')[0]}**. Use "+ Adicionar exercício".</div>`;
+        calculateVolume();
+        return;
+    }
+
+    let tableHTML = areaTitle + `
+        <table>
+            <thead>
+                <tr>
+                    <th>Exercício</th>
+                    <th>Meta (S x R)</th>
+                    <th>Carga (kg)</th>
+                    <th>Séries Feitas</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    exercises.forEach((ex, index) => {
+        const groupList = (Array.isArray(ex.groups) && ex.groups.length > 0) 
+            ? ex.groups.join(', ') 
+            : 'N/A';
+            
+        const isDone = (ex.seriesDone || 0) >= parseInt(ex.sets);
+        const isBodyweight = ex.isBodyweight || false;
+
+        let seriesOptions = `<option value="0">0/${ex.sets}</option>`;
+        for(let i = 1; i <= parseInt(ex.sets); i++) {
+            seriesOptions += `<option value="${i}" ${ex.seriesDone == i ? 'selected' : ''}>${i}/${ex.sets}</option>`;
+        }
+        
+        let weightCellContent;
+        if (isBodyweight) {
+            weightCellContent = `<span class="bodyweight-label">Peso Corporal</span>`;
+        } else {
+            weightCellContent = `
+                <div class="input-control">
+                    <input type="number" value="${ex.weight || 0}" placeholder="Peso" min="0" 
+                           onchange="updateExerciseValue(${index}, 'weight', this.value)">
+                </div>
+            `;
+        }
+        
+        const toggleButton = `<button class="btn secondary small-icon toggle-type" onclick="toggleBodyweight(${index})" title="${isBodyweight ? 'Mudar para Peso Livre' : 'Mudar para Peso Corporal'}">🔄</button>`;
+
+        const groupEditButton = isPrepRecovery ? '' : `<button class="btn secondary small-icon edit-group" onclick="editMuscleGroups(${index})" title="Editar Grupos">💪</button>`;
+
+        tableHTML += `
+            <tr class="${isDone ? 'concluido' : ''}">
+                <td data-label="Exercício">
+                    <div class="exercise-name-box">
+                        <span id="exName-${index}" style="font-weight: 600;">${ex.name}</span>
+                        <div class="action-buttons">
+                            <button class="btn secondary small-icon edit-name" onclick="editExerciseName(${index})" title="Editar Nome">📝</button> 
+                            ${groupEditButton}
+                            ${toggleButton}
+                            <button class="btn danger small-icon delete" onclick="deleteExercise(${index})" title="Excluir">X</button> 
+                        </div>
+                    </div>
+                    <div class="small">Grupos: ${groupList}</div>
+                </td>
+                <td data-label="Meta (S x R)">
+                    <div class="input-control">
+                        <input type="number" value="${ex.sets}" min="1" style="width: 45px;"
+                               onchange="updateExerciseValue(${index}, 'sets', this.value)"> x 
+                        <input type="number" value="${ex.reps}" min="1" style="width: 45px;"
+                               onchange="updateExerciseValue(${index}, 'reps', this.value)">
+                    </div>
+                </td>
+                <td data-label="Carga (kg)">
+                    ${weightCellContent}
+                </td>
+                <td data-label="Séries Feitas">
+                    <select onchange="updateSeriesDone(${index}, this.value)">
+                        ${seriesOptions}
+                    </select>
+                </td>
+            </tr>
+        `;
+    });
+
+    tableHTML += '</tbody></table>';
+    tableArea.innerHTML = tableHTML;
+    calculateVolume();
+}
+
+/* =======================
+   Volume exibido no painel
+   ======================= */
+
+function calculateVolume() {
+    if (!currentWorkout || !workouts[currentWorkout]) {
+        volumeArea.innerHTML = 'Selecione um treino e marque séries concluídas para ver o volume.';
+        return;
+    }
+
+    const { totalVolume, volumeByGroup } = calculateVolumeForWorkout(currentWorkout, true);
+
+    if (totalVolume === 0) {
+        volumeArea.innerHTML = 'Marque séries concluídas para ver o volume.';
+        return;
+    }
+    
+    let volumeHTML = `<div style="margin-bottom: 8px;">Volume Total de Repetições CONCLUÍDAS (Muscular): <strong>${totalVolume}</strong></div>`;
+    volumeHTML += '<ul class="volume-group-list">';
+    
+    const sortedGroups = Object.keys(volumeByGroup).sort((a, b) => volumeByGroup[b] - volumeByGroup[a]);
+
+    sortedGroups.forEach(group => {
+        volumeHTML += `<li><span>${group}:</span> <strong>${volumeByGroup[group]}</strong> repetições</li>`;
+    });
+    
+    volumeHTML += '</ul>';
+    volumeArea.innerHTML = volumeHTML;
+}
+
+/* =======================
+   PANORAMA DO TREINO
+   ======================= */
+
+function showWorkoutPanorama(workoutName) {
+    if (!user) {
+        alert("Você precisa estar logado para ver o panorama.");
+        return;
+    }
+    
+    const workoutData = workouts[workoutName];
+    if (!workoutData) return;
+
+    const { totalVolume, volumeByGroup } = calculateVolumeForWorkout(workoutName, false); 
+    
+    panoramaTitle.textContent = `Panorama do Treino: ${workoutName}`;
+    const meta = workoutData.meta || {};
+    const divisionKeys = meta.divisionKeys || [];
+    const model = MODEL_DEFINITIONS[meta.divisionModel] || { name: meta.divisionModel || 'Modelo Personalizado' };
+    
+    const mainDivisionsCount = divisionKeys.filter(key => 
+        !key.startsWith('Mobilidade:') && !key.startsWith('Alongamento:')
+    ).length;
+    const hasMobilidade = divisionKeys.some(key => key.startsWith('Mobilidade:'));
+    const hasAlongamento = divisionKeys.some(key => key.startsWith('Alongamento:'));
+
+
+    const prepStatus = hasMobilidade ? 'Sim (Tabela Dedicada)' : 'Não';
+    const recStatus = hasAlongamento ? 'Sim (Tabela Dedicada)' : 'Não';
+    panoramaModelData.innerHTML = `
+        <p><strong>Modelo de Divisão:</strong> ${meta.customModelLabel ? meta.customModelLabel : model.name}</p>
+        <p><strong>Número de Divisões Principais:</strong> ${mainDivisionsCount}</p>
+        <p><strong>Mobilidade/Preparo:</strong> ${prepStatus}</p>
+        <p><strong>Alongamento/Recuperação:</strong> ${recStatus}</p>
+    `;
+
+
+    let volumeHTML = totalVolume === 0 
+        ? 'Nenhum exercício cadastrado que conte para o volume muscular.' 
+        : `<div style="margin-bottom: 8px;">Volume Total Planejado (Muscular): <strong>${totalVolume}</strong></div><ul class="volume-group-list">`;
+
+    if (totalVolume > 0) {
+        const sortedGroups = Object.keys(volumeByGroup).sort();
+        sortedGroups.forEach(group => {
+            volumeHTML += `<li><span>${group}:</span> <strong>${volumeByGroup[group]}</strong> repetições</li>`;
+        });
+        volumeHTML += '</ul>';
+    }
+    panoramaVolume.innerHTML = volumeHTML;
+
+    let exerciseListHTML = '';
+    let hasExercises = false;
+    
+    divisionKeys.forEach(divisionKey => {
+        const exercises = workoutData[divisionKey] || [];
+        if (exercises.length > 0) {
+            hasExercises = true;
+            const displayTitle = divisionKey.includes(':') ? divisionKey.split(': ')[0] : divisionKey;
+            exerciseListHTML += `<h5 style="font-weight: 700; margin-top: 15px; margin-bottom: 5px; color: #5b9cff;">${displayTitle}</h5><ul style="list-style: none; padding-left: 10px;">`;
+            exercises.forEach(ex => {
+                const groups = (Array.isArray(ex.groups) && ex.groups.length > 0 && !divisionKey.startsWith('Mobilidade:')) 
+                    ? `(${ex.groups.filter(g => g !== 'Mobilidade').join(', ')})` 
+                    : '';
+                const weightText = ex.isBodyweight ? `(Peso Corporal)` : (ex.weight ? ` | Carga Padrão: ${ex.weight}kg` : '');
+                exerciseListHTML += `<li style="font-size: 14px; line-height: 1.5;"><span style="font-weight: 600;">${ex.name}</span>: ${ex.sets}x${ex.reps} ${groups} ${weightText}</li>`;
+            });
+            exerciseListHTML += `</ul>`;
+        }
+    });
+
+    if (!hasExercises) {
+        exerciseListHTML = '<p class="note">Nenhum exercício detalhado neste treino.</p>';
+    }
+    panoramaExerciseList.innerHTML = exerciseListHTML;
+
+    const userData = getUserData(user) || {};
+    const start = formatDate(meta.startDate);
+    const end = formatDate(meta.endDate);
+
+    const heightM = userData.height ? (parseFloat(userData.height) / 100).toFixed(2) : 'N/A';
+    const bmi = (userData.weight && userData.height) 
+                ? (parseFloat(userData.weight) / ((parseFloat(userData.height) / 100) ** 2)).toFixed(1)
+                : 'N/A';
+    
+    panoramaUserData.innerHTML = `
+        <p><strong>Período do Treino:</strong> ${start} - ${end}</p>
+        <p><strong>Nome:</strong> ${userData.name || 'N/A'}</p>
+        <p><strong>Nascimento:</strong> ${userData.birthdate || 'N/A'}</p>
+        <p><strong>Altura:</strong> ${heightM} m (${userData.height || 'N/A'} cm)</p>
+        <p><strong>Peso:</strong> ${userData.weight || 'N/A'} kg</p>
+        <p><strong>IMC:</strong> ${bmi}</p>
+    `;
+
+    btnSelectWorkout.onclick = () => {
+        currentWorkout = workoutName;
+        currentDivision = workouts[workoutName].meta.divisionKeys[0]; 
+        panoramaModal.style.display = 'none';
+        renderWorkoutList();
+    };
+    
+    panoramaModal.style.display = 'flex';
+}
+
+/* ===========================
+   MANIPULAÇÃO DE EXERCÍCIOS
+   =========================== */
+
+window.toggleBodyweight = (index) => {
+    if (!currentWorkout || !workouts[currentWorkout] || !currentDivision) { alert("Erro: Treino ou divisão inválidos."); return; }
+
+    const exercise = workouts[currentWorkout][currentDivision][index];
+    
+    exercise.isBodyweight = !exercise.isBodyweight;
+    
+    if (exercise.isBodyweight) {
+        exercise.weight = 0;
+    }
+    
+    saveWorkouts();
+    renderTable(); 
+}
+
+window.updateExerciseValue = (index, key, value) => {
+    if (!currentWorkout || !workouts[currentWorkout] || !currentDivision) { alert("Erro: Treino ou divisão inválidos."); return; }
+    
+    const exercise = workouts[currentWorkout][currentDivision][index];
+    
+    if (key === 'weight' && exercise.isBodyweight) { return; }
+    
+    let numValue = parseFloat(value);
+    
+    if (key === 'sets' || key === 'reps') {
+         numValue = parseInt(value);
+         if (isNaN(numValue) || numValue < 1) { numValue = 1; }
+    } else if (key === 'weight') {
+         if (isNaN(numValue) || numValue < 0) { numValue = 0; }
+    }
+    
+    exercise[key] = numValue;
+    
+    if (key === 'sets') {
+        if ((exercise.seriesDone || 0) > numValue) {
+            exercise.seriesDone = numValue;
+        }
+    }
+
+    saveWorkouts();
+    renderTable(); 
+}
+
+window.updateSeriesDone = (index, seriesDone) => {
+    if (!currentWorkout || !workouts[currentWorkout] || !currentDivision) { alert("Erro: Treino ou divisão inválidos."); return; }
+    
+    const numSeriesDone = parseInt(seriesDone);
+    if (isNaN(numSeriesDone) || numSeriesDone < 0) return;
+    
+    workouts[currentWorkout][currentDivision][index].seriesDone = numSeriesDone;
+    saveWorkouts();
+    renderTable(); 
+}
+
+window.deleteExercise = (index) => {
+    if (!currentWorkout || !workouts[currentWorkout] || !currentDivision) { alert("Erro: Treino ou divisão inválidos."); return; }
+    
+    if(confirm("Deseja remover este exercício?")){
+        workouts[currentWorkout][currentDivision].splice(index, 1);
+        saveWorkouts();
+        renderTable();
+    }
+}
+
+window.editExerciseName = (index) => {
+    if (!currentWorkout || !workouts[currentWorkout] || !currentDivision) { alert("Erro: Treino ou divisão inválidos."); return; }
+    
+    const exercise = workouts[currentWorkout][currentDivision][index];
+    const newName = prompt(`📝 NOVO NOME para o exercício:`, exercise.name);
+    
+    if (newName && newName.trim() !== "") {
+        exercise.name = newName.trim();
+        saveWorkouts();
+        document.getElementById(`exName-${index}`).textContent = newName.trim(); 
+    } else if (newName !== null) {
+        alert("O nome do exercício não pode ser vazio.");
+    }
+}
+
+window.editMuscleGroups = (index) => {
+    if (!currentWorkout || !workouts[currentWorkout] || !currentDivision) { alert("Erro: Treino inválido."); return; }
+    
+    if (currentDivision.startsWith('Mobilidade:') || currentDivision.startsWith('Alongamento:')) {
+        alert("Não é possível editar o grupo muscular nesta seção de Preparação/Recuperação.");
+        return;
+    }
+    
+    const exercises = workouts[currentWorkout][currentDivision];
+    if (index < 0 || index >= exercises.length) { alert("Erro: Índice inválido."); return; }
+    const exercise = exercises[index]; 
+    const currentIndices = Array.isArray(exercise.groups) 
+        ? exercise.groups.map(groupName => muscleGroups.indexOf(groupName) + 1).filter(i => i > 0)
+        : [];
+    const currentSelection = currentIndices.join(', ');
+    
+    const selection = prompt(
+        selectionPromptMessage +
+        `\nGrupos Atuais (Edite Aqui):`, 
+        currentSelection 
+    );
+    
+    if (selection !== null) { 
+        const groupsSelected = parseMuscleGroupSelection(selection);
+        if (groupsSelected.length === 0 && selection.trim() !== "") {
+            const confirmRemoval = confirm("Nenhum grupo válido foi selecionado. Você confirma que deseja REMOVER todos os grupos deste exercício?");
+            if (!confirmRemoval) { return; }
+        }
+        exercise.groups = groupsSelected;
+        saveWorkouts();      
+        renderTable();      
+    }
+}
+
+/* =======================
+   AUTENTICAÇÃO E USUÁRIO
+   ======================= */
+
+function populateUserInfoBox(userData) { 
+    const [day, month, year] = (userData.birthdate || '01/01/1970').split('/');
+    nameUser.value = userData.name || '';
+    cpfUser.value = user;
+    dayUser.value = day;
+    monthUser.value = month;
+    yearUser.value = year;
+    heightUser.value = userData.height || '';
+    weightUser.value = userData.weight || '';
+    passwordUser.value = '';
+    userMsg.textContent = '';
+}
+
+function showUserInfo() {
+    const userData = getUserData(user);
+    if (!userData) { alert("Erro ao carregar dados do usuário."); return; }
+    container.style.display = 'none';
+    userInfoBox.style.display = 'block';
+    populateUserInfoBox(userData);
+}
+
+function updateUserInfo() {
+    userMsg.textContent = '';
+    const userData = getUserData(user);
+    if (!userData) return;
+
+    const newName = nameUser.value.trim();
+    const newDay = dayUser.value;
+    const newMonth = monthUser.value;
+    const newYear = yearUser.value;
+    const newHeight = parseFloat(heightUser.value);
+    const newWeight = parseFloat(weightUser.value);
+    const newPassword = passwordUser.value;
+
+    if (!newName || !newDay || !newMonth || !newYear) { userMsg.textContent = "⚠️ Preencha nome e data de nascimento!"; return; }
+    const birthdateStr = `${newYear}-${newMonth}-${newDay}`;
+    if (isNaN(new Date(birthdateStr).getTime())) { userMsg.textContent = "⚠️ Data de nascimento inválida!"; return; }
+    if (isNaN(newHeight) || newHeight <= 0) { userMsg.textContent = "⚠️ Altura deve ser um número positivo válido."; return; }
+    if (isNaN(newWeight) || newWeight <= 0) { userMsg.textContent = "⚠️ Peso deve ser um número positivo válido."; return; }
+
+    userData.name = newName;
+    userData.birthdate = `${newDay}/${newMonth}/${newYear}`;
+    userData.height = newHeight;
+    userData.weight = newWeight;
+    
+    if (newPassword) {
+        if (newPassword.length < 4) { userMsg.textContent = "⚠️ A nova senha deve ter pelo menos 4 caracteres."; return; }
+        userData.password = newPassword;
+    }
+
+    saveUserData(user, userData);
+    userStatus.textContent = `Online (${userData.name.split(' ')[0]})`;
+    userMsg.textContent = "✅ Dados atualizados com sucesso!";
+    passwordUser.value = ''; 
+}
+
+/* =======================
+   ADIÇÃO DE DIVISÕES (MOB/ALONG)
+   ======================= */
+
+function addSpecificDivision(type) {
+    if (!user) { alert("Faça login primeiro."); return; }
+    if (!currentWorkout || !workouts[currentWorkout]) { alert("Selecione um treino primeiro para adicionar Mobilidade/Alongamento."); return; }
+    
+    const workout = workouts[currentWorkout];
+    const meta = workout.meta;
+    const divisionName = `${type}: ${currentWorkout}`;
+    
+    if (meta.divisionKeys.includes(divisionName)) {
+        alert(`${type} já existe neste treino! Selecione a aba.`);
+        currentDivision = divisionName;
+        renderTabs();
+        return;
+    }
+    
+    const confirmation = confirm(`Deseja adicionar a seção de ${type} ao treino "${currentWorkout}"?`);
+    if (!confirmation) return;
+    
+    meta.divisionKeys.push(divisionName);
+    workout[divisionName] = []; 
+    
+    if (type === 'Mobilidade') {
+        meta.doMobilidade = true;
+    } else if (type === 'Alongamento') {
+        meta.doAlongamento = true;
+    }
+    
+    currentDivision = divisionName;
+    saveWorkouts();
+    renderTabs(); 
+}
+
+/* =======================
+   EVENTOS E FLUXOS
+   ======================= */
+
+btnGoRegister.addEventListener('click', () => {
+    loginBox.style.display = 'none';
+    registerBox.style.display = 'block';
+    loginMsg.textContent = '';
+});
+
+btnGoLogin.addEventListener('click', () => {
+    registerBox.style.display = 'none';
+    loginBox.style.display = 'block';
+    registerMsg.textContent = '';
+});
+
+btnCloseUser.addEventListener('click', () => {
+    userInfoBox.style.display = 'none';
+    container.style.display = 'block';
+});
+
+btnUserInfo.addEventListener('click', showUserInfo);
+btnUpdateUser.addEventListener('click', updateUserInfo);
+
+btnAddMobility.addEventListener('click', () => addSpecificDivision('Mobilidade'));
+btnAddStretching.addEventListener('click', () => addSpecificDivision('Alongamento'));
+
+/* ---------------------------
+   CADASTRO / LOGIN (mantive)
+   --------------------------- */
+
+btnRegister.addEventListener('click', () => {
+    registerMsg.textContent = '';
+    const name = nameRegister.value.trim();
+    const cpf = normalizeCPF(cpfRegister.value);
+    const password = passwordRegister.value;
+    const day = dayRegister.value;
+    const month = monthRegister.value;
+    const year = yearRegister.value;
+    const height = parseFloat(heightRegister.value);
+    const weight = parseFloat(weightRegister.value);
+
+    if (!name || !cpf || !password || !day || !month || !year) { registerMsg.textContent = "⚠️ Preencha os campos obrigatórios!"; return; }
+    if (!validateCPF(cpf)) { registerMsg.textContent = "⚠️ CPF inválido. Use 11 dígitos."; return; }
+    if (getUserData(cpf)) { registerMsg.textContent = "⚠️ Usuário já cadastrado com este CPF!"; return; }
+    if (isNaN(height) || height <= 0 || isNaN(weight) || weight <= 0) { registerMsg.textContent = "⚠️ Altura e peso devem ser números positivos válidos."; return; }
+
+    const userData = {
+        name: name,
+        password: password,
+        birthdate: `${day}/${month}/${year}`,
+        height: height,
+        weight: weight
+    };
+    saveUserData(cpf, userData);
+    registerMsg.textContent = "✅ Cadastro realizado! Agora você pode entrar com seu CPF.";
+
+    nameRegister.value = cpfRegister.value = passwordRegister.value = '';
+    dayRegister.value = monthRegister.value = yearRegister.value = '';
+    heightRegister.value = weightRegister.value = '';
+});
+
+btnLogin.addEventListener('click', () => {
+    loginMsg.textContent = '';
+    const cpf = normalizeCPF(cpfLogin.value);
+
+    if (!cpf) { loginMsg.textContent = "⚠️ Preencha o CPF!"; return; }
+    if (!validateCPF(cpf)) { loginMsg.textContent = "⚠️ CPF inválido. Use 11 dígitos."; return; }
+    let userData = getUserData(cpf);
+    
+    // Usuário de teste mantido
+    const rodrigoCpf = '01234567890';
+    if (cpf === rodrigoCpf && !userData) { 
+        userData = {
+            name: "Rodrigo Aparecido Guimarães",
+            password: "test",
+            birthdate: "01/01/1980",
+            height: 175,
+            weight: 80
+        };
+        saveUserData(cpf, userData);
+    }
+    if (cpf === '75135249600' && !userData) { 
+        userData = {
+            name: "Rodrigo Aparecido Guimarães",
+            password: "test",
+            birthdate: "01/01/1980",
+            height: 175,
+            weight: 80
+        };
+        saveUserData(cpf, userData);
+    }
+    
+    if (!userData) { loginMsg.textContent = "⚠️ CPF não encontrado. Cadastre-se primeiro."; return; }
+    
+    user = cpf;
+    userStatus.textContent = `Online (${userData.name.split(' ')[0]})`;
+    loginBox.style.display = "none";
+    btnUserInfo.style.display = "inline";
+    container.style.display = "block";
+    btnLogout.style.display = "inline";
+
+    const saved = localStorage.getItem('workouts_' + user);
+    workouts = saved ? JSON.parse(saved) : {};
+    
+    const workoutKeys = Object.keys(workouts).filter(k => workouts[k].meta && workouts[k].meta.divisionKeys);
+    currentWorkout = workoutKeys.length > 0 ? workoutKeys[0] : null;
+
+    if (currentWorkout) {
+        const keys = workouts[currentWorkout].meta.divisionKeys;
+        currentDivision = keys.includes(currentDivision) ? currentDivision : keys[0];
+    } else {
+        currentDivision = null;
+    }
+
+    renderWorkoutList();
+    loginMsg.textContent = "";
+});
+
+btnLogout.addEventListener('click', () => {
+    user = null;
+    workouts = {};
+    currentWorkout = null;
+    currentDivision = null;
+    userStatus.textContent = "Offline";
+    container.style.display = "none";
+    loginBox.style.display = "block";
+    btnLogout.style.display = "none";
+    btnUserInfo.style.display = "none";
+    userInfoBox.style.display = 'none';
+    loginMsg.textContent = "Você saiu.";
+});
+
+/* ======================================================
+   FLUXO NOVO TREINO (Atualizado: Pergunta dias primeiro)
+   ====================================================== */
+
+btnNewWorkout.addEventListener('click', () => {
+    if (!user) { alert("Faça login primeiro."); return; }
+
+    // 1) Pergunta quantos dias (1 a 7)
+    const daysInput = prompt("Quantos dias por semana você quer treinar? (Digite 1 a 7):", "3");
+    if (daysInput === null) return;
+    let days = parseInt(daysInput);
+    if (isNaN(days) || days < 1 || days > 7) {
+        alert("Valor inválido. Digite um número entre 1 e 7.");
+        return;
+    }
+
+    // 2) Sugere modelos compatíveis e mostra opções: Modelos Prontos / Estrutura Livre / Personalizável
+    const suggested = suggestModels(days);
+    let menuText = `Escolha o modelo semanal (dias: ${days}):\n\n`;
+    suggested.forEach((s, i) => {
+        if (s === 'Personalizado') {
+            menuText += `${i+1}. Personalizável (você define o que cada dia significa)\n`;
+        } else if (s === 'Free') {
+            menuText += `${i+1}. Estrutura Livre (Dias A..${String.fromCharCode(64 + days)})\n`;
+        } else {
+            menuText += `${i+1}. ${MODEL_DEFINITIONS[s].name}\n`;
+        }
+    });
+    // Sempre adiciona opção explícita Personalizado e Livre no final, se já não estiver
+    const extrasStart = suggested.length + 1;
+    if (!suggested.includes('Personalizado')) {
+        menuText += `${extrasStart}. Personalizável (você define o que cada dia significa)\n`;
+    }
+    if (!suggested.includes('Free')) {
+        menuText += `${extrasStart + (suggested.includes('Personalizado') ? 0 : 1)}. Estrutura Livre (A..)\n`;
+    }
+
+    const modelSelection = prompt(menuText + `\nDigite o NÚMERO da opção desejada:`);
+    if (modelSelection === null) return;
+    const modelIndex = parseInt(modelSelection.trim()) - 1;
+    if (isNaN(modelIndex)) { alert("Seleção inválida."); return; }
+
+    // Reconstroi a lista completa com ordem previsível para indexação
+    const fullOptions = [...suggested];
+    if (!fullOptions.includes('Personalizado')) fullOptions.push('Personalizado');
+    if (!fullOptions.includes('Free')) fullOptions.push('Free');
+
+    const chosenOption = fullOptions[modelIndex];
+    if (!chosenOption) { alert("Opção inválida."); return; }
+
+    // 3) Pergunta prazo do treino (datas)
+    const today = new Date().toISOString().substring(0, 10);
+    const defaultEndDate = new Date(Date.now() + 70 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
+    const startDate = prompt("Data de Início do Treino (formato YYYY-MM-DD):", today);
+    if (!startDate || !/^\d{4}-\d{2}-\d{2}$/.test(startDate.trim())) {
+         alert("Data de Início inválida. Use o formato YYYY-MM-DD.");
+         return;
+    }
+    const endDate = prompt("Data Final do Treino (formato YYYY-MM-DD) - Sugestão: 10 semanas:", defaultEndDate);
+    if (!endDate || !/^\d{4}-\d{2}-\d{2}$/.test(endDate.trim())) {
+         alert("Data Final inválida. Use o formato YYYY-MM-DD.");
+         return;
+    }
+
+    // 4) Pergunta sobre Mobilidade / Alongamento (checkboxes via confirmações)
+    const wantMobility = confirm("Deseja incluir seção de Mobilidade separada (tabela dedicada)?\n\nOK = Sim / Cancelar = Não");
+    const wantStretching = confirm("Deseja incluir seção de Alongamento separada (tabela dedicada)?\n\nOK = Sim / Cancelar = Não");
+
+    // 5) Gera divisionKeys de acordo com escolha
+    let divisionKeys = [];
+    let customLabel = null;
+
+    if (chosenOption === 'Free') {
+        divisionKeys = generateFreeStructureKeys(days);
+        customLabel = `Livre (${days} dias)`;
+    } else if (chosenOption === 'Personalizado') {
+        // Permite o usuário digitar um nome para cada dia
+        const names = [];
+        for (let i = 0; i < days; i++) {
+            const defaultName = `Dia ${i + 1}`;
+            const name = prompt(`Nome para o Dia ${i + 1} (ex: Peito+Tri, Pernas, Upper):`, defaultName);
+            if (name === null) {
+                // aborta criação inteira
+                alert("Criação de treino cancelada.");
+                return;
+            }
+            names.push(name.trim() === '' ? defaultName : name.trim());
+        }
+        divisionKeys = names;
+        customLabel = `Personalizado (${days} dias)`;
+    } else {
+        // Modelo pronto: gera via função
+        divisionKeys = generateDivisionKeysForModel(chosenOption, days);
+        customLabel = MODEL_DEFINITIONS[chosenOption]?.name || chosenOption;
+    }
+
+    // 6) Monta o objeto de treino com as divisões vazias
+    const name = prompt("Nome do novo treino:");
+    if (!name) return;
+    const cleanName = name.trim();
+    if (workouts[cleanName]) { alert("Treino já existe!"); return; }
+
+    const newWorkoutData = {
+        meta: {
+            startDate: startDate.trim(),
+            endDate: endDate.trim(),
+            divisionModel: chosenOption === 'Free' ? 'Free' : (chosenOption === 'Personalizado' ? 'Personalizado' : chosenOption),
+            divisionKeys: [],
+            doMobilidade: !!wantMobility,
+            doAlongamento: !!wantStretching,
+            customModelLabel: customLabel
+        }
+    };
+
+    // Adiciona as chaves principais
+    divisionKeys.forEach(k => {
+        // Evita nomes vazios
+        const keyName = k && k.toString().trim() !== '' ? k.toString().trim() : `Dia ${newWorkoutData.meta.divisionKeys.length + 1}`;
+        newWorkoutData[keyName] = [];
+        newWorkoutData.meta.divisionKeys.push(keyName);
+    });
+
+    // Adiciona Mobilidade/Alongamento se escolhidos
+    if (wantMobility) {
+        const mobKey = `Mobilidade: ${cleanName}`;
+        newWorkoutData[mobKey] = [];
+        newWorkoutData.meta.divisionKeys.push(mobKey);
+    }
+    if (wantStretching) {
+        const stretchKey = `Alongamento: ${cleanName}`;
+        newWorkoutData[stretchKey] = [];
+        newWorkoutData.meta.divisionKeys.push(stretchKey);
+    }
+
+    workouts[cleanName] = newWorkoutData;
+    currentWorkout = cleanName;
+    currentDivision = newWorkoutData.meta.divisionKeys[0];
+    saveWorkouts();
+    renderWorkoutList();
+    renderTabs();
+});
+
+/* =======================
+   ADICIONAR EXERCÍCIOS
+   ======================= */
+
+btnAddExercise.addEventListener('click', () => {
+    if (!user) { alert("Faça login primeiro."); return; }
+    if (!currentWorkout) { alert("Selecione ou crie um treino primeiro."); return; }
+    if (!currentDivision) { alert("O treino atual não tem divisões válidas. Crie um novo treino."); return; }
+    
+    const exName = prompt(`Nome do exercício para a divisão "${currentDivision.split(': ')[0]}":`);
+    if (!exName || exName.trim() === "") { return; }
+
+    const isBodyweight = confirm(
+        "Este exercício é de Peso Corporal (ex: Barra Fixa, Flexão)?\n\n" +
+        "- Clique em 'OK' para SIM\n" +
+        "- Clique em 'Cancelar' para NÃO (Peso Livre)"
+    );
+    
+    let groupsSelected = [];
+    if (currentDivision.startsWith('Mobilidade:')) {
+        groupsSelected.push('Mobilidade');
+    } else if (currentDivision.startsWith('Alongamento:')) {
+        groupsSelected.push('Estabilizadores');
+    } else {
+        const selection = prompt(selectionPromptMessage);
+        if (selection !== null) { groupsSelected = parseMuscleGroupSelection(selection); } 
+        if (groupsSelected.length === 0 && selection !== null && selection.trim() !== "") {
+             alert("Nenhum grupo muscular válido foi selecionado. O volume não será contabilizado por grupo.");
+        }
+    }
+    
+    workouts[currentWorkout][currentDivision].push({
+        name: exName.trim(),
+        sets: 3,
+        reps: 10,
+        weight: 0, 
+        seriesDone: 0, 
+        isBodyweight: isBodyweight,
+        groups: groupsSelected
+    });
+    
+    saveWorkouts();
+    renderTable();
+});
+
+/* =======================
+   INICIALIZAÇÃO
+   ======================= */
+
+window.onload = () => {
+    cpfLogin.value = '';
+    renderWorkoutList(); 
+};
+</script>
+</body>
+</html>
