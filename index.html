@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planilha de Treino PRO - V7 (Científica) - Refatorada</title>
-<meta name="version" content="1.0 (23-11-2025 10:00:00 -03)">
+<title>Planilha de Treino PRO - V8 (Com Alvos e Cronômetro)</title>
+<meta name="version" content="2.0 (Com melhorias de UX)">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* Estilos globais e de layout */
 *{box-sizing:border-box;margin:0;padding:0;font-family:Inter,sans-serif;}
 body{background:#f6f8fb;color:#111;min-height:100vh;}
 button{cursor:pointer;}
-header{background:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+header{background:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 50;}
 header h1{font-size:20px;}
 header .userbox{display:flex;gap:10px;align-items:center;}
 .user-status{font-size:13px;color:#7a8798;}
@@ -34,6 +34,25 @@ header .userbox{display:flex;gap:10px;align-items:center;}
 .btn.edit-group {background: #3b82f6;}
 .btn.delete {background: #ef4444;}
 .btn.toggle-type {background: #f97316;} 
+
+/* CRONÔMETRO */
+.stopwatch-bar {
+    background: #1e293b;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.timer-display { font-family: monospace; font-size: 24px; font-weight: 700; color: #fbbf24; }
+.timer-controls { display: flex; gap: 5px; }
+.btn-timer { padding: 5px 10px; border-radius: 4px; border: none; font-size: 12px; font-weight: bold; }
+.btn-start { background: #22c55e; color: #fff; }
+.btn-stop { background: #ef4444; color: #fff; }
+.btn-reset { background: #475569; color: #fff; }
 
 .tabs{display:flex;gap:10px;margin-bottom:12px;overflow-x:auto;padding-bottom:5px;}
 .tab{padding:8px 14px;border-radius:10px;background:#f1f7ff;color:#033;cursor:pointer;border:1px solid transparent;white-space:nowrap;transition:0.2s;}
@@ -66,6 +85,25 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
     font-weight: 700;
     color: #3b82f6;
 }
+
+/* Checkbox Salvar Usuário */
+.save-user-box {
+    display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 15px; cursor: pointer;
+}
+.save-user-box input { width: auto !important; margin: 0 !important; }
+.save-user-box span { font-size: 13px; color: #555; }
+
+/* ALVOS DE SÉRIES */
+.targets-container { display: flex; gap: 5px; align-items: center; }
+.target-icon {
+    font-size: 22px; 
+    cursor: pointer; 
+    transition: transform 0.2s, opacity 0.2s, filter 0.2s;
+    user-select: none;
+}
+.target-icon:hover { transform: scale(1.2); }
+.target-inactive { opacity: 0.3; filter: grayscale(100%); }
+.target-active { opacity: 1; filter: none; }
 
 /* Campo de carga para peso corporal */
 .bodyweight-label {
@@ -102,7 +140,7 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
     gap: 5px;
 }
 
-/* Estilos de Login/Cadastro/Info (Mantidos) */
+/* Estilos de Login/Cadastro/Info */
 #loginBox, #registerBox, #userInfoBox{max-width:360px;margin:60px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 6px 16px rgba(20,40,80,0.08);}
 #loginBox h2, #registerBox h2, #userInfoBox h2{text-align:center;margin-bottom:20px;}
 #loginBox input, #registerBox input, #userInfoBox input{width:100%;padding:10px;margin-bottom:12px;border-radius:6px;border:1px solid #d1d5db;}
@@ -123,7 +161,7 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
 .panorama-section h4 { color: #3b82f6; margin-bottom: 8px; font-size: 16px; border-left: 3px solid #3b82f6; padding-left: 8px;}
 .panorama-user-data p { font-size: 14px; margin: 4px 0;}
 
-/* ESTILO RESPONSIVO PARA MOBILE (CORRIGIDO) */
+/* ESTILO RESPONSIVO PARA MOBILE */
 @media screen and (max-width: 600px) {
     table, thead, tbody, th, td, tr { 
         display: block; 
@@ -177,6 +215,12 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
 <div id="loginBox">
   <h2>Acesso Rápido</h2>
   <input type="text" id="cpfLogin" placeholder="CPF (apenas números)">
+  
+  <label class="save-user-box">
+      <input type="checkbox" id="chkSaveUser">
+      <span>Salvar Usuário (Lembrar-me)</span>
+  </label>
+
   <div class="flex-btns">
     <button id="btnLogin" class="btn">Entrar</button> 
     <button id="btnGoRegister" class="btn secondary">Cadastrar</button>
@@ -242,6 +286,20 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
 </div>
 
 <div class="container">
+  
+  <!-- CRONÔMETRO DE DESCANSO -->
+  <div class="stopwatch-bar">
+      <div style="display:flex; flex-direction:column;">
+          <span style="font-size:10px; opacity:0.7; text-transform:uppercase;">Cronômetro de Descanso</span>
+          <div id="timerDisplay" class="timer-display">00:00</div>
+      </div>
+      <div class="timer-controls">
+          <button id="btnStartTimer" class="btn-timer btn-start">▶</button>
+          <button id="btnStopTimer" class="btn-timer btn-stop">⏸</button>
+          <button id="btnResetTimer" class="btn-timer btn-reset">↺</button>
+      </div>
+  </div>
+
   <div class="topbar">
     <div class="flex">
       <div class="note">Treino atual:</div>
@@ -262,7 +320,7 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
         <div id="tableArea"></div>
       </div>
       <div class="card">
-        <h3>📊 Volume de Repetições</h3>
+        <h3>📊 Volume de Séries</h3>
         <div id="volumeArea" class="volume">Selecione um treino e marque séries concluídas para ver o volume.</div>
       </div>
     </div>
@@ -287,7 +345,7 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
         </div>
         
         <div class="panorama-section">
-            <h4>Volume Estimado por Grupo Muscular (Treino Completo)</h4>
+            <h4>Volume Estimado (Séries Planejadas)</h4>
             <div id="panoramaVolume"></div>
         </div>
         
@@ -335,53 +393,17 @@ const selectionPromptMessage =
     muscleGroupsMap + 
     "\n--------------------------------------\n";
 
-/* ======= MODELOS E GERADORES DE DIVISÕES =======
-   Aqui mapeamos modelos para "bases" e geramos
-   divisão real de acordo com o número de dias.
-================================================= */
+/* ======= MODELOS E GERADORES DE DIVISÕES ======= */
 
 const MODEL_DEFINITIONS = {
-    'FullBody': {
-        name: 'Full Body (Corpo Inteiro)',
-        base: ['Full Body'],
-        minDays: 1,
-        supportsDays: (d) => d >= 1 && d <= 7 // always ok
-    },
-    'UpperLower': {
-        name: 'Upper/Lower (Superior/Inferior)',
-        base: ['Superior', 'Inferior'],
-        minDays: 1,
-        supportsDays: (d) => d >= 1 && d <= 7
-    },
-    'PPL': {
-        name: 'PPL (Push / Pull / Legs)',
-        base: ['Push', 'Pull', 'Legs'],
-        minDays: 1,
-        supportsDays: (d) => d >= 1 && d <= 7
-    },
-    'ABC': {
-        name: 'ABC (Dia A / Dia B / Dia C)',
-        base: ['Dia A', 'Dia B', 'Dia C'],
-        minDays: 1,
-        supportsDays: (d) => d >= 1 && d <= 7
-    },
-    'ABC_2x': {
-        name: 'ABC 2× (6 Dias)',
-        base: ['Dia A', 'Dia B', 'Dia C', 'Dia A', 'Dia B', 'Dia C'],
-        minDays: 3,
-        supportsDays: (d) => d >= 3 && d <= 7
-    },
-    'BroSplit': {
-        name: 'Bro Split (Peito/Costas/Ombro/Pernas/Braços)',
-        base: ['Peito', 'Costas', 'Ombros', 'Pernas', 'Braços'],
-        minDays: 1,
-        supportsDays: (d) => d >= 1 && d <= 7
-    }
+    'FullBody': { name: 'Full Body (Corpo Inteiro)', base: ['Full Body'], minDays: 1, supportsDays: (d) => d >= 1 && d <= 7 },
+    'UpperLower': { name: 'Upper/Lower (Superior/Inferior)', base: ['Superior', 'Inferior'], minDays: 1, supportsDays: (d) => d >= 1 && d <= 7 },
+    'PPL': { name: 'PPL (Push / Pull / Legs)', base: ['Push', 'Pull', 'Legs'], minDays: 1, supportsDays: (d) => d >= 1 && d <= 7 },
+    'ABC': { name: 'ABC (Dia A / Dia B / Dia C)', base: ['Dia A', 'Dia B', 'Dia C'], minDays: 1, supportsDays: (d) => d >= 1 && d <= 7 },
+    'ABC_2x': { name: 'ABC 2× (6 Dias)', base: ['Dia A', 'Dia B', 'Dia C', 'Dia A', 'Dia B', 'Dia C'], minDays: 3, supportsDays: (d) => d >= 3 && d <= 7 },
+    'BroSplit': { name: 'Bro Split (Peito/Costas/Ombro/Pernas/Braços)', base: ['Peito', 'Costas', 'Ombros', 'Pernas', 'Braços'], minDays: 1, supportsDays: (d) => d >= 1 && d <= 7 }
 };
 
-// Gera divisionKeys a partir de um modelo e número de dias.
-// Estratégia: cicla pela base até preencher 'days' chaves.
-// Se for ABC_2x e days < 6, reduz para os primeiros 'days' elementos.
 function generateDivisionKeysForModel(modelKey, days) {
     const def = MODEL_DEFINITIONS[modelKey];
     if (!def) return [];
@@ -390,72 +412,32 @@ function generateDivisionKeysForModel(modelKey, days) {
     const keys = [];
     let idx = 0;
     while (keys.length < days) {
-        // Para tentar evitar nomes idênticos repetidos sem contexto, 
-        // se base tem repetições (como ABC_2x) vamos usar exatamente.
         const candidate = base[idx % base.length];
-        // Evita criar chaves iguais seguidas: se já existe a mesma string, acrescenta um sufixo numérico
         let finalName = candidate;
-        // Se já existe e base é curta, vamos alternar com (1),(2) para manter distinção
         if (keys.includes(finalName)) {
-            // Conta quantas vezes já existe
             let count = keys.filter(k => k === finalName).length;
             finalName = `${finalName} ${count + 1}`;
         }
         keys.push(finalName);
         idx++;
-        // Se base tem tamanho 1 e days > 1, apenas repetiremos o mesmo nome (Full Body xN) - é esperado
     }
     return keys;
 }
 
-// Gera divisionKeys para "Estrutura Livre" (A..G) com 'days' letras
 function generateFreeStructureKeys(days) {
     const letters = ['A','B','C','D','E','F','G'];
     return letters.slice(0, Math.max(1, Math.min(7, days))).map(l => `Dia ${l}`);
 }
 
-// Sugestões inteligentes de modelos com base no número de dias
 function suggestModels(days) {
     const suggestions = [];
-
-    // Prioriza modelos coerentes
-    if (days === 1) {
-        suggestions.push('FullBody');
-        suggestions.push('Personalizado');
-        suggestions.push('Free');
-    } else if (days === 2) {
-        suggestions.push('UpperLower');
-        suggestions.push('FullBody');
-        suggestions.push('Personalizado');
-        suggestions.push('Free');
-    } else if (days === 3) {
-        suggestions.push('PPL');
-        suggestions.push('ABC');
-        suggestions.push('FullBody');
-        suggestions.push('Personalizado');
-        suggestions.push('Free');
-    } else if (days === 4) {
-        suggestions.push('UpperLower');
-        suggestions.push('PPL');
-        suggestions.push('Personalizado');
-        suggestions.push('Free');
-    } else if (days === 5) {
-        suggestions.push('BroSplit');
-        suggestions.push('Personalizado');
-        suggestions.push('Free');
-    } else if (days === 6) {
-        suggestions.push('ABC_2x');
-        suggestions.push('PPL');
-        suggestions.push('Personalizado');
-        suggestions.push('Free');
-    } else if (days === 7) {
-        suggestions.push('Personalizado');
-        suggestions.push('Free');
-        suggestions.push('PPL');
-        suggestions.push('FullBody');
-    }
-
-    // Remove duplicatas e devolve
+    if (days === 1) { suggestions.push('FullBody', 'Personalizado', 'Free'); } 
+    else if (days === 2) { suggestions.push('UpperLower', 'FullBody', 'Personalizado', 'Free'); } 
+    else if (days === 3) { suggestions.push('PPL', 'ABC', 'FullBody', 'Personalizado', 'Free'); } 
+    else if (days === 4) { suggestions.push('UpperLower', 'PPL', 'Personalizado', 'Free'); } 
+    else if (days === 5) { suggestions.push('BroSplit', 'Personalizado', 'Free'); } 
+    else if (days === 6) { suggestions.push('ABC_2x', 'PPL', 'Personalizado', 'Free'); } 
+    else if (days === 7) { suggestions.push('Personalizado', 'Free', 'PPL', 'FullBody'); }
     return [...new Set(suggestions)];
 }
 
@@ -488,6 +470,7 @@ const btnGoLogin = document.getElementById('btnGoLogin');
 const btnUserInfo = document.getElementById('btnUserInfo');
 const btnCloseUser = document.getElementById('btnCloseUser');
 const btnUpdateUser = document.getElementById('btnUpdateUser');
+const chkSaveUser = document.getElementById('chkSaveUser'); // Referência ao checkbox
 
 const cpfLogin = document.getElementById('cpfLogin'); 
 const nameRegister = document.getElementById('nameRegister');
@@ -516,6 +499,41 @@ const panoramaExerciseList = document.getElementById('panoramaExerciseList');
 const panoramaModelData = document.getElementById('panoramaModelData');
 const btnClosePanorama = document.getElementById('btnClosePanorama');
 const btnSelectWorkout = document.getElementById('btnSelectWorkout');
+
+/* ===========================
+   CRONÔMETRO
+   =========================== */
+let timerInterval;
+let timerSeconds = 0;
+const timerDisplay = document.getElementById('timerDisplay');
+const btnStartTimer = document.getElementById('btnStartTimer');
+const btnStopTimer = document.getElementById('btnStopTimer');
+const btnResetTimer = document.getElementById('btnResetTimer');
+
+function formatTimer(sec) {
+    const m = Math.floor(sec / 60).toString().padStart(2, '0');
+    const s = (sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+}
+
+btnStartTimer.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        timerSeconds++;
+        timerDisplay.textContent = formatTimer(timerSeconds);
+    }, 1000);
+});
+
+btnStopTimer.addEventListener('click', () => {
+    clearInterval(timerInterval);
+});
+
+btnResetTimer.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    timerSeconds = 0;
+    timerDisplay.textContent = "00:00";
+});
+
 
 /* ===========================
    PERSISTÊNCIA E FUNÇÕES ÚTEIS
@@ -562,10 +580,12 @@ function formatDate(dateString) {
 }
 
 /* =======================
-   CÁLCULO DE VOLUME
+   CÁLCULO DE VOLUME (MODIFICADO: POR SÉRIES)
    ======================= */
 
-function calculateVolumeForWorkout(workoutName, onlyDone = true) {
+function calculateVolumeForWorkout(workoutName) {
+    // Agora calculamos apenas as SÉRIES (Sets) baseadas no plano (Meta)
+    // O usuário pediu: "calcular a quantidade de série conforme o número que o usuário preenche no campo Meta"
     const workoutData = workouts[workoutName];
     if (!workoutData || !workoutData.meta || !workoutData.meta.divisionKeys) return { totalVolume: 0, volumeByGroup: {} };
 
@@ -579,19 +599,21 @@ function calculateVolumeForWorkout(workoutName, onlyDone = true) {
     mainDivisionKeys.forEach(divisionKey => {
         const exercises = workoutData[divisionKey] || [];
         exercises.forEach(ex => {
-            const seriesDone = ex.seriesDone || 0;
+            // O volume agora é apenas o número de Séries (Sets)
             const targetSets = parseInt(ex.sets) || 0;
-            const targetReps = parseInt(ex.reps) || 0;
             
-            const setsToCount = onlyDone ? seriesDone : targetSets;
-            const repVolume = setsToCount * targetReps;
+            // Se o usuário pedir para calcular SÓ o que foi feito, usamos ex.seriesDone.
+            // Mas o pedido foi "calcular conforme o número que preenche no campo Meta", sugerindo planejamento.
+            // Para visualização de progresso no painel, usaremos a Meta.
             
-            totalVolume += repVolume;
+            const volumeToAdd = targetSets;
+            
+            totalVolume += volumeToAdd;
                 
             if (Array.isArray(ex.groups) && ex.groups.length > 0) {
                 ex.groups.forEach(group => {
                     if (group !== 'Mobilidade') {
-                        volumeByGroup[group] = (volumeByGroup[group] || 0) + repVolume;
+                        volumeByGroup[group] = (volumeByGroup[group] || 0) + volumeToAdd;
                     }
                 });
             }
@@ -644,19 +666,16 @@ function renderWorkoutList() {
         renderTable(); 
         calculateVolume();
         
-        // Esconde botões de adição se não houver treino ativo
         btnAddExercise.style.display = 'none';
         btnAddMobility.style.display = 'none';
         btnAddStretching.style.display = 'none';
         return;
     }
     
-    // Mostra botões de adição
     btnAddExercise.style.display = 'inline-block';
     btnAddMobility.style.display = 'inline-block';
     btnAddStretching.style.display = 'inline-block';
 
-    
     if (!currentWorkout || !workouts.hasOwnProperty(currentWorkout) || !workouts[currentWorkout].meta) {
          currentWorkout = workoutNames[0] || null;
     }
@@ -684,7 +703,7 @@ function renderWorkoutList() {
         div.onclick = () => {
             currentWorkout = t;
             currentDivision = workouts[t].meta.divisionKeys[0] || null;
-            renderWorkoutList(); // Redesenha para ativar a classe
+            renderWorkoutList(); 
             showWorkoutPanorama(t); 
         };
 
@@ -725,7 +744,6 @@ function renderTabs() {
             if (d.startsWith('Mobilidade:')) { icon = '🤸 '; }
             else if (d.startsWith('Alongamento:')) { icon = '🧘 '; }
             
-            // Exibir apenas a parte antes de ' : ' para adequar nomes que possam ter sufixos
             const displayLabel = d.includes(':') ? d.split(': ')[0] : d;
             div.textContent = icon + displayLabel;
 
@@ -739,6 +757,7 @@ function renderTabs() {
     renderTable();
 }
 
+// NOVA FUNÇÃO RENDER TABLE COM ALVOS
 function renderTable() {
     if (!currentWorkout || !workouts[currentWorkout] || !currentDivision) {
         tableArea.innerHTML = '<div class="note-center">Selecione ou crie um treino para começar.</div>';
@@ -764,7 +783,7 @@ function renderTable() {
                     <th>Exercício</th>
                     <th>Meta (S x R)</th>
                     <th>Carga (kg)</th>
-                    <th>Séries Feitas</th>
+                    <th>Séries Feitas (Alvos)</th>
                 </tr>
             </thead>
             <tbody>
@@ -778,10 +797,33 @@ function renderTable() {
         const isDone = (ex.seriesDone || 0) >= parseInt(ex.sets);
         const isBodyweight = ex.isBodyweight || false;
 
-        let seriesOptions = `<option value="0">0/${ex.sets}</option>`;
-        for(let i = 1; i <= parseInt(ex.sets); i++) {
-            seriesOptions += `<option value="${i}" ${ex.seriesDone == i ? 'selected' : ''}>${i}/${ex.sets}</option>`;
+        // GERAÇÃO DOS ALVOS (TARGETS)
+        let targetsHTML = '<div class="targets-container">';
+        const totalSets = parseInt(ex.sets) || 1;
+        const currentDone = parseInt(ex.seriesDone) || 0;
+
+        for(let i = 1; i <= totalSets; i++) {
+            // Se o alvo atual (i) for menor ou igual ao feito, está ativo.
+            const isActive = i <= currentDone;
+            const cssClass = isActive ? 'target-active' : 'target-inactive';
+            
+            // Função Click: 
+            // Se eu clico no alvo 3:
+            // - Se eu já tenho 3 feitos e clico no 3 de novo, eu volto para 2 (toggle off).
+            // - Caso contrário, viro 3.
+            
+            // Mas a lógica mais simples para UI é: Clicou no 3, marca 3.
+            // Para desmarcar o ultimo, tem que clicar nele de novo.
+            
+            targetsHTML += `
+                <span class="target-icon ${cssClass}" 
+                      onclick="handleTargetClick(${index}, ${i}, ${currentDone})" 
+                      title="Série ${i}">
+                   🎯
+                </span>
+            `;
         }
+        targetsHTML += '</div>';
         
         let weightCellContent;
         if (isBodyweight) {
@@ -825,9 +867,7 @@ function renderTable() {
                     ${weightCellContent}
                 </td>
                 <td data-label="Séries Feitas">
-                    <select onchange="updateSeriesDone(${index}, this.value)">
-                        ${seriesOptions}
-                    </select>
+                    ${targetsHTML}
                 </td>
             </tr>
         `;
@@ -838,8 +878,24 @@ function renderTable() {
     calculateVolume();
 }
 
+// Handler para o clique no alvo
+window.handleTargetClick = (index, targetNumber, currentDone) => {
+    // Se o usuário clicar exatamente no alvo que representa a quantidade atual feita,
+    // significa que ele quer desmarcar esse último.
+    // Ex: Feito 3. Clica no 3 -> Vira 2.
+    // Ex: Feito 2. Clica no 3 -> Vira 3.
+    let newValue;
+    if (targetNumber === currentDone) {
+        newValue = targetNumber - 1;
+    } else {
+        newValue = targetNumber;
+    }
+    updateSeriesDone(index, newValue);
+};
+
+
 /* =======================
-   Volume exibido no painel
+   Volume exibido no painel (MODIFICADO)
    ======================= */
 
 function calculateVolume() {
@@ -848,20 +904,21 @@ function calculateVolume() {
         return;
     }
 
-    const { totalVolume, volumeByGroup } = calculateVolumeForWorkout(currentWorkout, true);
+    const { totalVolume, volumeByGroup } = calculateVolumeForWorkout(currentWorkout);
 
     if (totalVolume === 0) {
-        volumeArea.innerHTML = 'Marque séries concluídas para ver o volume.';
+        volumeArea.innerHTML = 'Defina metas de séries para ver o volume.';
         return;
     }
     
-    let volumeHTML = `<div style="margin-bottom: 8px;">Volume Total de Repetições CONCLUÍDAS (Muscular): <strong>${totalVolume}</strong></div>`;
+    // Texto alterado para Volume de SÉRIES
+    let volumeHTML = `<div style="margin-bottom: 8px;">Volume Total Planejado (Séries): <strong>${totalVolume}</strong></div>`;
     volumeHTML += '<ul class="volume-group-list">';
     
     const sortedGroups = Object.keys(volumeByGroup).sort((a, b) => volumeByGroup[b] - volumeByGroup[a]);
 
     sortedGroups.forEach(group => {
-        volumeHTML += `<li><span>${group}:</span> <strong>${volumeByGroup[group]}</strong> repetições</li>`;
+        volumeHTML += `<li><span>${group}:</span> <strong>${volumeByGroup[group]}</strong> séries</li>`;
     });
     
     volumeHTML += '</ul>';
@@ -881,7 +938,7 @@ function showWorkoutPanorama(workoutName) {
     const workoutData = workouts[workoutName];
     if (!workoutData) return;
 
-    const { totalVolume, volumeByGroup } = calculateVolumeForWorkout(workoutName, false); 
+    const { totalVolume, volumeByGroup } = calculateVolumeForWorkout(workoutName); 
     
     panoramaTitle.textContent = `Panorama do Treino: ${workoutName}`;
     const meta = workoutData.meta || {};
@@ -906,13 +963,13 @@ function showWorkoutPanorama(workoutName) {
 
 
     let volumeHTML = totalVolume === 0 
-        ? 'Nenhum exercício cadastrado que conte para o volume muscular.' 
-        : `<div style="margin-bottom: 8px;">Volume Total Planejado (Muscular): <strong>${totalVolume}</strong></div><ul class="volume-group-list">`;
+        ? 'Nenhum exercício cadastrado.' 
+        : `<div style="margin-bottom: 8px;">Volume Total Planejado (Séries): <strong>${totalVolume}</strong></div><ul class="volume-group-list">`;
 
     if (totalVolume > 0) {
         const sortedGroups = Object.keys(volumeByGroup).sort();
         sortedGroups.forEach(group => {
-            volumeHTML += `<li><span>${group}:</span> <strong>${volumeByGroup[group]}</strong> repetições</li>`;
+            volumeHTML += `<li><span>${group}:</span> <strong>${volumeByGroup[group]}</strong> séries</li>`;
         });
         volumeHTML += '</ul>';
     }
@@ -1008,6 +1065,7 @@ window.updateExerciseValue = (index, key, value) => {
     
     exercise[key] = numValue;
     
+    // Se diminuir o numero de sets, ajustar o seriesDone para não ficar maior
     if (key === 'sets') {
         if ((exercise.seriesDone || 0) > numValue) {
             exercise.seriesDone = numValue;
@@ -1212,7 +1270,7 @@ btnAddMobility.addEventListener('click', () => addSpecificDivision('Mobilidade')
 btnAddStretching.addEventListener('click', () => addSpecificDivision('Alongamento'));
 
 /* ---------------------------
-   CADASTRO / LOGIN (mantive)
+   CADASTRO / LOGIN
    --------------------------- */
 
 btnRegister.addEventListener('click', () => {
@@ -1254,19 +1312,9 @@ btnLogin.addEventListener('click', () => {
     if (!validateCPF(cpf)) { loginMsg.textContent = "⚠️ CPF inválido. Use 11 dígitos."; return; }
     let userData = getUserData(cpf);
     
-    // Usuário de teste mantido
+    // Usuário de teste
     const rodrigoCpf = '01234567890';
     if (cpf === rodrigoCpf && !userData) { 
-        userData = {
-            name: "Rodrigo Aparecido Guimarães",
-            password: "test",
-            birthdate: "01/01/1980",
-            height: 175,
-            weight: 80
-        };
-        saveUserData(cpf, userData);
-    }
-    if (cpf === '75135249600' && !userData) { 
         userData = {
             name: "Rodrigo Aparecido Guimarães",
             password: "test",
@@ -1279,6 +1327,13 @@ btnLogin.addEventListener('click', () => {
     
     if (!userData) { loginMsg.textContent = "⚠️ CPF não encontrado. Cadastre-se primeiro."; return; }
     
+    // LOGICA DE SALVAR USUÁRIO
+    if(chkSaveUser.checked) {
+        localStorage.setItem('saved_cpf', cpf);
+    } else {
+        localStorage.removeItem('saved_cpf');
+    }
+
     user = cpf;
     userStatus.textContent = `Online (${userData.name.split(' ')[0]})`;
     loginBox.style.display = "none";
@@ -1318,13 +1373,12 @@ btnLogout.addEventListener('click', () => {
 });
 
 /* ======================================================
-   FLUXO NOVO TREINO (Atualizado: Pergunta dias primeiro)
+   FLUXO NOVO TREINO
    ====================================================== */
 
 btnNewWorkout.addEventListener('click', () => {
     if (!user) { alert("Faça login primeiro."); return; }
 
-    // 1) Pergunta quantos dias (1 a 7)
     const daysInput = prompt("Quantos dias por semana você quer treinar? (Digite 1 a 7):", "3");
     if (daysInput === null) return;
     let days = parseInt(daysInput);
@@ -1333,7 +1387,6 @@ btnNewWorkout.addEventListener('click', () => {
         return;
     }
 
-    // 2) Sugere modelos compatíveis e mostra opções: Modelos Prontos / Estrutura Livre / Personalizável
     const suggested = suggestModels(days);
     let menuText = `Escolha o modelo semanal (dias: ${days}):\n\n`;
     suggested.forEach((s, i) => {
@@ -1345,7 +1398,7 @@ btnNewWorkout.addEventListener('click', () => {
             menuText += `${i+1}. ${MODEL_DEFINITIONS[s].name}\n`;
         }
     });
-    // Sempre adiciona opção explícita Personalizado e Livre no final, se já não estiver
+    
     const extrasStart = suggested.length + 1;
     if (!suggested.includes('Personalizado')) {
         menuText += `${extrasStart}. Personalizável (você define o que cada dia significa)\n`;
@@ -1359,7 +1412,6 @@ btnNewWorkout.addEventListener('click', () => {
     const modelIndex = parseInt(modelSelection.trim()) - 1;
     if (isNaN(modelIndex)) { alert("Seleção inválida."); return; }
 
-    // Reconstroi a lista completa com ordem previsível para indexação
     const fullOptions = [...suggested];
     if (!fullOptions.includes('Personalizado')) fullOptions.push('Personalizado');
     if (!fullOptions.includes('Free')) fullOptions.push('Free');
@@ -1367,7 +1419,6 @@ btnNewWorkout.addEventListener('click', () => {
     const chosenOption = fullOptions[modelIndex];
     if (!chosenOption) { alert("Opção inválida."); return; }
 
-    // 3) Pergunta prazo do treino (datas)
     const today = new Date().toISOString().substring(0, 10);
     const defaultEndDate = new Date(Date.now() + 70 * 24 * 60 * 60 * 1000).toISOString().substring(0, 10);
     const startDate = prompt("Data de Início do Treino (formato YYYY-MM-DD):", today);
@@ -1381,11 +1432,9 @@ btnNewWorkout.addEventListener('click', () => {
          return;
     }
 
-    // 4) Pergunta sobre Mobilidade / Alongamento (checkboxes via confirmações)
     const wantMobility = confirm("Deseja incluir seção de Mobilidade separada (tabela dedicada)?\n\nOK = Sim / Cancelar = Não");
     const wantStretching = confirm("Deseja incluir seção de Alongamento separada (tabela dedicada)?\n\nOK = Sim / Cancelar = Não");
 
-    // 5) Gera divisionKeys de acordo com escolha
     let divisionKeys = [];
     let customLabel = null;
 
@@ -1393,13 +1442,11 @@ btnNewWorkout.addEventListener('click', () => {
         divisionKeys = generateFreeStructureKeys(days);
         customLabel = `Livre (${days} dias)`;
     } else if (chosenOption === 'Personalizado') {
-        // Permite o usuário digitar um nome para cada dia
         const names = [];
         for (let i = 0; i < days; i++) {
             const defaultName = `Dia ${i + 1}`;
             const name = prompt(`Nome para o Dia ${i + 1} (ex: Peito+Tri, Pernas, Upper):`, defaultName);
             if (name === null) {
-                // aborta criação inteira
                 alert("Criação de treino cancelada.");
                 return;
             }
@@ -1408,12 +1455,10 @@ btnNewWorkout.addEventListener('click', () => {
         divisionKeys = names;
         customLabel = `Personalizado (${days} dias)`;
     } else {
-        // Modelo pronto: gera via função
         divisionKeys = generateDivisionKeysForModel(chosenOption, days);
         customLabel = MODEL_DEFINITIONS[chosenOption]?.name || chosenOption;
     }
 
-    // 6) Monta o objeto de treino com as divisões vazias
     const name = prompt("Nome do novo treino:");
     if (!name) return;
     const cleanName = name.trim();
@@ -1431,15 +1476,12 @@ btnNewWorkout.addEventListener('click', () => {
         }
     };
 
-    // Adiciona as chaves principais
     divisionKeys.forEach(k => {
-        // Evita nomes vazios
         const keyName = k && k.toString().trim() !== '' ? k.toString().trim() : `Dia ${newWorkoutData.meta.divisionKeys.length + 1}`;
         newWorkoutData[keyName] = [];
         newWorkoutData.meta.divisionKeys.push(keyName);
     });
 
-    // Adiciona Mobilidade/Alongamento se escolhidos
     if (wantMobility) {
         const mobKey = `Mobilidade: ${cleanName}`;
         newWorkoutData[mobKey] = [];
@@ -1509,9 +1551,15 @@ btnAddExercise.addEventListener('click', () => {
    ======================= */
 
 window.onload = () => {
-    cpfLogin.value = '';
+    // Verificar se existe usuario salvo
+    const savedCPF = localStorage.getItem('saved_cpf');
+    if(savedCPF) {
+        cpfLogin.value = savedCPF;
+        chkSaveUser.checked = true;
+    }
     renderWorkoutList(); 
 };
 </script>
 </body>
 </html>
+
