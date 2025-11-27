@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Planilha de Treino PRO - V8 (Com Alvos e Cronômetro)</title>
-<meta name="version" content="2.1 (Timer Regressivo e Estrutura de Lista)">
+<title>Planilha de Treino PRO - V9 (Manual Input)</title>
+<meta name="version" content="2.2 (Entrada Manual de Exercícios)">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* Estilos globais e de layout */
@@ -161,51 +161,16 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
 .panorama-section h4 { color: #3b82f6; margin-bottom: 8px; font-size: 16px; border-left: 3px solid #3b82f6; padding-left: 8px;}
 .panorama-user-data p { font-size: 14px; margin: 4px 0;}
 
-/* LISTA DE EXERCÍCIOS ADICIONADA */
+/* LISTA DE EXERCÍCIOS ADICIONADA (MODIFICADA PARA INPUT MANUAL) */
 #exerciseSelectionModal {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7);
     display: none; justify-content: center; align-items: center; z-index: 1001; overflow-y: auto; padding: 20px;
 }
 #exerciseSelectionContent {
-    background: #fff; padding: 20px; border-radius: 12px; width: 95%; max-width: 900px;
+    background: #fff; padding: 20px; border-radius: 12px; width: 95%; max-width: 500px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); position: relative; max-height: 95vh; overflow-y: auto;
 }
-#exerciseSelectionContent h3 { margin-bottom: 15px; }
-.exercise-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 15px;
-    margin-top: 15px;
-    max-height: 500px;
-    overflow-y: auto;
-    padding-right: 5px;
-}
-.exercise-item {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 10px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: #f9f9f9;
-}
-.exercise-item:hover {
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-    border-color: #3b82f6;
-}
-.exercise-item img {
-    width: 100%;
-    max-height: 100px;
-    object-fit: contain;
-    border-radius: 4px;
-    margin-bottom: 8px;
-}
-.exercise-item strong {
-    font-size: 14px;
-    display: block;
-    color: #333;
-}
+#exerciseSelectionContent h3 { margin-bottom: 10px; }
 
 /* ESTILO RESPONSIVO PARA MOBILE */
 @media screen and (max-width: 600px) {
@@ -243,9 +208,6 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
     }
     tr td:first-child:before {
         content: ""; 
-    }
-    .exercise-grid {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     }
 }
 </style>
@@ -416,15 +378,24 @@ th{background:#f6f9ff;color:#334155;font-weight:600;}
 
 <div id="exerciseSelectionModal">
     <div id="exerciseSelectionContent">
-        <h3 id="exerciseSelectionTitle">Selecione uma Atividade</h3>
-        <p class="note" id="exerciseSelectionContext">Escolha na lista abaixo qual atividade deseja adicionar.</p>
+        <h3 id="exerciseSelectionTitle">Adicionar Atividade</h3>
+        <p class="note" id="exerciseSelectionContext" style="margin-bottom: 15px;">Digite o nome do exercício que deseja adicionar.</p>
         
-        <div class="exercise-grid" id="exerciseGrid">
-             <div class="note-center">Aguardando a sua lista de exercícios e lógica de programação...</div>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="font-size: 12px; color: #555; font-weight: 600;">Nome do Exercício:</label>
+                <input type="text" id="manualExerciseName" placeholder="Ex: Supino Reto, Corrida, Agachamento..." style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; margin-top: 5px;">
+            </div>
+
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" id="manualExerciseBodyweight">
+                <span style="font-size: 14px;">Este exercício usa apenas Peso Corporal?</span>
+            </label>
         </div>
 
         <div class="flex-btns" style="margin-top: 20px;">
-             <button id="btnCloseExerciseSelection" class="btn secondary">Fechar</button>
+             <button id="btnConfirmAdd" class="btn warn" onclick="confirmAddManualExercise()">Adicionar</button>
+             <button id="btnCloseExerciseSelection" class="btn secondary">Cancelar</button>
         </div>
     </div>
 </div>
@@ -565,9 +536,6 @@ const btnSelectWorkout = document.getElementById('btnSelectWorkout');
 
 // Adicionando referências para o novo modal de exercícios
 const exerciseSelectionModal = document.getElementById('exerciseSelectionModal');
-const exerciseSelectionTitle = document.getElementById('exerciseSelectionTitle');
-const exerciseSelectionContext = document.getElementById('exerciseSelectionContext');
-const exerciseGrid = document.getElementById('exerciseGrid');
 const btnCloseExerciseSelection = document.getElementById('btnCloseExerciseSelection');
 
 /* ===========================
@@ -1283,11 +1251,11 @@ window.editMuscleGroups = (index) => {
 }
 
 /* ======================================================
-   FUNÇÕES DE LISTA DE EXERCÍCIOS (AGUARDANDO SUA LÓGICA)
+   FUNÇÕES DE ADIÇÃO MANUAL (ALTERADO)
    ====================================================== */
-let currentExerciseType = 'Exercício'; // 'Exercício', 'Mobilidade', 'Alongamento'
+let currentExerciseType = 'Exercício'; 
 
-// Função que abre o modal de seleção de exercícios
+// 1. Função que abre o modal limpo para digitação
 function showExerciseSelection(type) {
     if (!currentWorkout || !currentDivision) {
         alert("Selecione um treino e uma divisão primeiro.");
@@ -1295,102 +1263,77 @@ function showExerciseSelection(type) {
     }
     currentExerciseType = type;
     
-    exerciseSelectionTitle.textContent = `Adicionar ${type}`;
-    exerciseSelectionContext.textContent = `Selecione um item abaixo para adicionar à divisão "${currentDivision.split(': ')[0]}".`;
+    // Atualiza os textos
+    document.getElementById('exerciseSelectionTitle').textContent = `Adicionar ${type}`;
+    document.getElementById('exerciseSelectionContext').textContent = `Adicionando em: "${currentDivision.split(': ')[0]}".`;
     
-    // Renderiza a lista (substituir por sua lógica)
-    renderExerciseGrid(type);
+    // Limpa o campo de texto para digitar um novo
+    document.getElementById('manualExerciseName').value = '';
+    document.getElementById('manualExerciseBodyweight').checked = false;
     
-    exerciseSelectionModal.style.display = 'flex';
+    // Foca no campo de texto automaticamente
+    setTimeout(() => {
+        document.getElementById('manualExerciseName').focus();
+    }, 100);
+
+    document.getElementById('exerciseSelectionModal').style.display = 'flex';
 }
 
-// Função para fechar o modal
-btnCloseExerciseSelection.addEventListener('click', () => {
-    exerciseSelectionModal.style.display = 'none';
+// 2. Botão de Fechar
+document.getElementById('btnCloseExerciseSelection').addEventListener('click', () => {
+    document.getElementById('exerciseSelectionModal').style.display = 'none';
 });
 
-// AQUI ESTARÁ A SUA LÓGICA DE PROGRAMAÇÃO COM A LISTA DE EXERCÍCIOS
-function renderExerciseGrid(type) {
-    // ESTA É A ÁREA ONDE VOCÊ INSERIRÁ SUA LISTA E LÓGICA.
-    // Use esta estrutura como exemplo:
+// 3. Nova função que pega o que você digitou e salva
+function confirmAddManualExercise() {
+    const nameInput = document.getElementById('manualExerciseName');
+    const bwCheckbox = document.getElementById('manualExerciseBodyweight');
     
-    let sampleExercises = [];
-    if (type === 'Mobilidade') {
-        sampleExercises = [
-            { name: "Mobilidade de Quadril", image: "images/hip_mobility.gif", isBodyweight: true, groups: ['Mobilidade'] },
-            { name: "Rotação Torácica", image: "images/thoracic_rotation.gif", isBodyweight: true, groups: ['Mobilidade'] },
-            //...
-        ];
-    } else if (type === 'Alongamento') {
-        sampleExercises = [
-            { name: "Alongamento de Isquiotibiais", image: "images/hamstring_stretch.gif", isBodyweight: true, groups: ['Estabilizadores'] },
-            { name: "Alongamento de Peitoral", image: "images/pec_stretch.gif", isBodyweight: true, groups: ['Estabilizadores'] },
-            //...
-        ];
-    } else { // Exercício (padrão)
-        sampleExercises = [
-            { name: "Supino Reto com Barra", image: "images/bench_press.gif", isBodyweight: false, groups: ['Peito (Peitorais)', 'Ombros (Deltóides)', 'Tríceps'] },
-            { name: "Agachamento Livre", image: "images/squat.gif", isBodyweight: false, groups: ['Quadríceps', 'Glúteos', 'Lombar'] },
-            { name: "Remada Curvada", image: "images/bent_over_row.gif", isBodyweight: false, groups: ['Costas (Dorsais)', 'Bíceps'] },
-            //...
-        ];
-    }
+    const name = nameInput.value.trim();
     
-    // Por enquanto, apenas um placeholder:
-    if (sampleExercises.length === 0) {
-        exerciseGrid.innerHTML = `<div style="text-align: center; grid-column: 1 / -1;">Lista de ${type} vazia. Por favor, envie sua tabela para que eu possa preenchê-la.</div>`;
+    if (!name) {
+        alert("Por favor, digite o nome do exercício.");
         return;
     }
 
-    let html = '';
-    sampleExercises.forEach(ex => {
-        // O caminho da imagem/gif deve ser o caminho local correto no seu projeto (ex: /caminho/para/image.gif)
-        // Como o caminho exato não foi fornecido, usei um placeholder genérico.
-        // Você substituirá 'images/...' pelo caminho correto.
-        const imagePath = ex.image || 'placeholder.jpg'; // Usar um placeholder para evitar erro 404
-        
-        html += `
-            <div class="exercise-item" 
-                 onclick="addExerciseFromSelection('${ex.name}', ${ex.isBodyweight}, [${ex.groups.map(g => `'${g}'`).join(', ')}])">
-                <img src="${imagePath}" alt="${ex.name}" onerror="this.onerror=null;this.src='placeholder.jpg';">
-                <strong>${ex.name}</strong>
-            </div>
-        `;
-    });
-    
-    exerciseGrid.innerHTML = html;
-}
-
-// Função que adiciona o exercício selecionado à rotina
-window.addExerciseFromSelection = (name, isBodyweight, groups) => {
-    // Aqui vai a LÓGICA DE PROGRAMAÇÃO de ADIÇÃO que você mencionou na sua tabela.
-    // Por enquanto, usaremos a lógica padrão de adição.
-    
-    // Exemplo de Lógica de Adição Padrão:
     if (!currentWorkout || !currentDivision) {
-        alert("Erro ao adicionar: Treino ou divisão não selecionados.");
+        alert("Erro: Treino não selecionado.");
         return;
     }
-    
+
+    // Configuração padrão
     const sets = 3; 
     const reps = 10;
     
+    // Define grupos automaticamente baseado no tipo, se for Mob ou Along
+    let defaultGroups = [];
+    if(currentExerciseType === 'Mobilidade') defaultGroups = ['Mobilidade'];
+    if(currentExerciseType === 'Alongamento') defaultGroups = ['Estabilizadores'];
+
+    // Adiciona ao objeto de treinos
     workouts[currentWorkout][currentDivision].push({
         name: name,
         sets: sets,
         reps: reps,
         weight: 0, 
         seriesDone: 0, 
-        isBodyweight: isBodyweight,
-        groups: groups
+        isBodyweight: bwCheckbox.checked,
+        groups: defaultGroups // Começa sem grupo muscular definido (você edita na tabela depois se quiser)
     });
     
     saveWorkouts();
     renderTable();
     
-    alert(`"${name}" adicionado com Meta: ${sets}x${reps}.`);
-    exerciseSelectionModal.style.display = 'none';
-};
+    // Fecha o modal
+    document.getElementById('exerciseSelectionModal').style.display = 'none';
+}
+
+// Permite apertar ENTER para salvar
+document.getElementById('manualExerciseName').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        confirmAddManualExercise();
+    }
+});
 
 /* =======================
    AUTENTICAÇÃO E USUÁRIO
