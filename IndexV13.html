@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SuperTabela PRO V13 - Cloud Sync & Volume Real</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary: #2563eb; --primary-dark: #1e40af; --secondary: #64748b;
+        --bg-body: #f8fafc; --bg-card: #ffffff;
+        --text-main: #0f172a; --text-muted: #64748b;
+        --success: #16a34a; --danger: #dc2626; --warning: #ca8a04;
+        --border: #e2e8f0; --radius: 12px;
+        --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg-body); color: var(--text-main); min-height: 100vh; padding-bottom: 80px; }
+
+    /* === LAYOUT === */
+    header {
+        background: var(--bg-card); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;
+    }
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 16px; }
+    
+    /* Layout de Grade para Desktop (Sidebar + Main) */
+    .main-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .card { background: var(--bg-card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+    .card h3 { margin-bottom: 15px; font-size: 16px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: var(--primary); }
+
+    /* === COMPONENTES === */
+    .btn {
+        padding: 10px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: white; border: 1px solid var(--border); color: var(--text-main); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+    .w-100 { width: 100%; }
+
+    input, select { padding: 8px; border: 1px solid var(--border); border-radius: 6px; outline: none; width: 100%; }
+    input:focus { border-color: var(--primary); }
+
+    /* Grupo de Checkbox para Grupos Musculares */
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+    .checkbox-group label {
+        background: #f1f5f9; padding: 6px 12px; border-radius: 20px; font-size: 13px; cursor: pointer;
+        display: flex; align-items: center; gap: 5px; border: 1px solid transparent; transition: 0.2s;
+    }
+    .checkbox-group input[type="checkbox"] { width: auto; height: auto; margin: 0; display: none; }
+    .checkbox-group input[type="checkbox"]:checked + span {
+        background: var(--primary); color: white; border-color: var(--primary);
+    }
+    .checkbox-group input[type="checkbox"]:checked + span:before {
+        content: '✓'; margin-right: 4px; font-size: 10px;
+    }
+
+
+    /* === UI DE TREINO === */
+    .workout-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-bottom: 15px; }
+    .tab-btn {
+        padding: 8px 16px; background: #e2e8f0; border-radius: 20px; white-space: nowrap; cursor: pointer; font-size: 13px; font-weight: 600; border: none; color: #64748b;
+    }
+    .tab-btn.active { background: var(--primary); color: white; }
+
+    .exercise-item {
+        border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; padding: 12px; background: #fff;
+        display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    }
+    @media (max-width: 600px) { .exercise-item { grid-template-columns: 1fr; } }
+    
+    .ex-info h4 { font-size: 15px; margin-bottom: 4px; }
+    .ex-groups { 
+        font-size: 11px; color: var(--text-muted); background: #f1f5f9; padding: 2px 6px; border-radius: 4px; display: inline-block;
+        margin-top: 4px; line-height: 1.5;
+    }
+    
+    .ex-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .control-group { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; }
+    .control-group input { width: 50px; text-align: center; }
+
+    /* DARDOS (Targets) */
+    .targets { display: flex; gap: 6px; margin-top: 5px; }
+    .target-dot {
+        width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 10px; color: transparent; transition: 0.2s;
+    }
+    .target-dot.active { background: var(--success); color: white; transform: scale(1.1); }
+
+    /* === SIDEBAR VOLUME === */
+    .volume-list li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+    .volume-list li strong { color: var(--primary); }
+
+    /* === TIMER BAR === */
+    .timer-bar {
+        background: #1e293b; color: white; padding: 10px 20px; border-radius: 8px; margin-bottom: 20px;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .timer-display { font-family: monospace; font-size: 24px; font-weight: 700; color: #fbbf24; }
+    
+    /* === DRAWER MENU === */
+    .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 999; }
+    .drawer {
+        position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: white; z-index: 1000;
+        transition: 0.3s; padding: 20px; display: flex; flex-direction: column;
+    }
+    .drawer.open { left: 0; }
+
+    /* === MODALS === */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 10px; }
+    .modal-content { background: white; width: 100%; max-width: 500px; padding: 20px; border-radius: 12px; max-height: 90vh; overflow-y: auto; }
+
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <button class="btn btn-secondary btn-sm" onclick="app.toggleMenu(true)">☰</button>
+        <h1 style="font-size:18px; color:var(--primary);">SuperTabela V13</h1>
+    </div>
+    <div id="userStatus" style="font-size:12px; font-weight:600;">Carregando...</div>
+</header>
+
+<!-- MENU LATERAL -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="app.toggleMenu(false)"></div>
+<div class="drawer" id="mainDrawer">
+    <h2 style="margin-bottom:20px;">Menu</h2>
+    <div class="nav-item" onclick="app.nav('home')">🏠 Treino Atual</div>
+    <div class="nav-item" onclick="app.nav('exercises')">📚 Banco de Exercícios</div>
+    <div class="nav-item" onclick="app.nav('history')">📅 Histórico</div>
+    <div class="nav-item" onclick="app.nav('profile')">👤 Perfil</div>
+    <div style="margin-top:auto; border-top:1px solid #eee; padding-top:10px;">
+        <div class="nav-item" style="color:var(--danger);" onclick="app.logout()">🚪 Trocar Usuário (Logout)</div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- LOADING SCREEN -->
+    <div id="view-loading" class="card" style="max-width:400px; margin:40px auto; text-align:center;">
+        <h2 style="margin-bottom:10px;">Conectando ao Cloud...</h2>
+        <p>Aguarde a sincronização dos seus dados.</p>
+    </div>
+
+    <!-- LOGIN SCREEN (Fallback) -->
+    <div id="view-login" class="card hidden" style="max-width:400px; margin:40px auto;">
+        <h2 style="text-align:center; margin-bottom:20px;">Acesso (Offline)</h2>
+        <p style="margin-bottom:15px; color:var(--danger);">Se você vir esta tela, o login automático falhou. Tente novamente.</p>
+        <label>CPF (Apenas números)</label>
+        <input type="tel" id="loginCpf" placeholder="000.000.000-00" style="margin-bottom:10px;">
+        <button class="btn btn-primary w-100" onclick="app.login()">Entrar</button>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="view-home" class="hidden">
+        
+        <!-- TIMER BAR -->
+        <div class="timer-bar">
+            <div>
+                <span style="font-size:10px; opacity:0.7;">DESCANSOMETRO</span>
+                <div id="timerDisplay" class="timer-display">00:60</div>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <button class="btn btn-success btn-sm" onclick="timer.start()">▶</button>
+                <button class="btn btn-danger btn-sm" onclick="timer.stop()">⏹</button>
+                <button class="btn btn-secondary btn-sm" onclick="timer.config()">⚙</button>
+            </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="card" style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <span style="font-size:12px; color:var(--text-muted);">Treino:</span>
+                <strong id="lblWorkoutName">Nenhum</strong>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <button class="btn btn-secondary btn-sm" onclick="app.openWorkoutList()">📂 Abrir</button>
+                <button class="btn btn-primary btn-sm" onclick="app.newWorkoutPrompt()">+ Novo</button>
+            </div>
+        </div>
+
+        <div id="workoutContent" class="hidden">
+            <div class="main-grid">
+                
+                <!-- LEFT COLUMN: EXERCISES -->
+                <div>
+                    <div class="workout-tabs" id="dayTabs"></div>
+
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                            <h3 id="lblCurrentDay" style="border:none; margin:0;">Dia A</h3>
+                            <button class="btn btn-success btn-sm" onclick="app.openAddExModal()">+ Exercício</button>
+                        </div>
+
+                        <div id="exerciseList"></div>
+                        
+                        <div style="margin-top:20px; border-top:1px solid #eee; padding-top:15px;">
+                            <button class="btn btn-success w-100" onclick="app.finishSession()">✅ Concluir Treino de Hoje</button>
+                            <p style="text-align:center; font-size:11px; margin-top:5px; color:#777;">Salva no histórico e reseta as marcações.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: VOLUME & STATS -->
+                <div>
+                    <div class="card">
+                        <h3>📊 Volume (Séries Concluídas)</h3>
+                        <div id="volumeChart"></div>
+                        <p style="font-size:11px; color:#777; margin-top:10px;">Calculado com base nas séries que você assinalou como "Feitas".</p>
+                    </div>
+
+                    <div class="card">
+                        <h3>ℹ️ Info do Treino</h3>
+                        <p style="font-size:13px;">Modelo: <span id="infoModel">-</span></p>
+                        <p style="font-size:13px;">Início: <span id="infoStart">-</span></p>
+                        <p style="font-size:13px;">Fim: <span id="infoEnd">-</span></p>
+                        <button class="btn btn-secondary btn-sm w-100" style="margin-top:10px;" onclick="app.editWorkoutMeta()">Editar Datas</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- EXERCISE DB VIEW -->
+    <div id="view-exercises" class="hidden">
+        <div class="card">
+            <h3>Banco de Exercícios</h3>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+                <input type="text" id="dbSearch" placeholder="Buscar..." onkeyup="app.renderDB()">
+                <button class="btn btn-primary" onclick="app.addToDBPrompt()">+ Novo</button>
+            </div>
+            <div id="dbList"></div>
+        </div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div id="view-history" class="hidden">
+        <div class="card">
+            <h3>Histórico</h3>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- PROFILE VIEW -->
+    <div id="view-profile" class="hidden">
+        <div class="card">
+            <h3>Perfil</h3>
+            <label>ID do Usuário</label><p id="lblUserId" style="font-size:11px; color:var(--primary-dark); margin-bottom:15px; overflow-wrap: break-word;">...</p>
+            <label>Nome</label><input type="text" id="profName" style="margin-bottom:10px;">
+            <label>Peso (kg)</label><input type="number" id="profWeight" style="margin-bottom:10px;">
+            <label>Altura (cm)</label><input type="number" id="profHeight" style="margin-bottom:10px;">
+            <button class="btn btn-primary" onclick="app.saveProfile()">Salvar</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODALS -->
+<div id="modalSelectWorkout" class="modal">
+    <div class="modal-content">
+        <h3>Meus Treinos</h3>
+        <div id="myWorkoutsList"></div>
+        <button class="btn btn-secondary w-100" style="margin-top:10px;" onclick="app.closeModal('modalSelectWorkout')">Fechar</button>
+    </div>
+</div>
+
+<div id="modalAddEx" class="modal">
+    <div class="modal-content">
+        <h3>Adicionar Exercício</h3>
+        <input type="text" id="addExSearch" placeholder="Filtrar..." onkeyup="app.renderAddExList()" style="margin-bottom:10px;">
+        
+        <!-- Lista do Banco de Dados -->
+        <div id="addExList" style="max-height:200px; overflow-y:auto; border:1px solid #eee; margin-bottom:10px;"></div>
+        
+        <!-- Adição Manual (com Checkboxes) -->
+        <div style="border-top:1px solid #eee; padding-top:10px;">
+            <label style="font-size:12px; font-weight:600;">Adicionar Manualmente</label>
+            <input type="text" id="manualExName" placeholder="Nome do exercício" style="margin-bottom:10px;">
+            
+            <label style="font-size:12px; font-weight:600;">Grupos Musculares</label>
+            <div id="manualExGroupsContainer" class="checkbox-group">
+                <!-- Checkboxes serão injetados aqui -->
+            </div>
+            
+            <label style="font-size:12px; font-weight:600;">Tipo de Carga</label>
+            <select id="manualLoadType" style="margin-bottom:10px;">
+                <option value="Weight">Kg (Carga Adicional)</option>
+                <option value="Bodyweight">Peso Corporal (PC)</option>
+            </select>
+
+            <div style="display:flex; gap:5px;">
+                <button class="btn btn-secondary w-100" onclick="app.closeModal('modalAddEx')">Cancelar</button>
+                <button class="btn btn-primary w-100" onclick="app.confirmAddEx()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase Imports -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    
+    // setLogLevel('Debug'); // Para debug do Firestore
+
+    // Global variables from Canvas environment
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    if (Object.keys(firebaseConfig).length > 0) {
+        const firebaseApp = initializeApp(firebaseConfig);
+        window.db = getFirestore(firebaseApp);
+        window.auth = getAuth(firebaseApp);
+    } else {
+        console.error("Firebase Configuração não encontrada.");
+    }
+    
+    // Function to get the correct Firestore document reference
+    window.getUserDocRef = (userId) => {
+        // Path: /artifacts/{appId}/users/{userId}/data/{docId}
+        return doc(window.db, `artifacts/${appId}/users/${userId}/data/userData`);
+    };
+
+    // Replace old localStorage init with Firebase Auth listener
+    window.appInit = async () => {
+        if (!window.auth) {
+            app.nav('login');
+            return;
+        }
+
+        onAuthStateChanged(window.auth, async (user) => {
+            if (user) {
+                app.state.userId = user.uid;
+                app.state.isAuthReady = true;
+                document.getElementById('lblUserId').innerText = user.uid;
+                document.getElementById('userStatus').innerText = 'Online (Sincronizado)';
+                app.nav('home');
+                
+                // Start listening for real-time data changes
+                app.startDataListener(user.uid);
+            } else {
+                try {
+                    // Sign in anonymously if no user is found (initial state or explicit sign out)
+                    await signInAnonymously(window.auth);
+                } catch (error) {
+                    console.error("Erro ao tentar login anônimo:", error);
+                    app.nav('login');
+                }
+            }
+        });
+
+        // Use custom token for secure sign-in if available
+        if (initialAuthToken) {
+            try {
+                await signInWithCustomToken(window.auth, initialAuthToken);
+            } catch (error) {
+                console.warn("Erro ao usar token customizado, caindo para anônimo:", error);
+            }
+        }
+    };
+
+    window.app = { ...window.app, init: window.appInit };
+    window.app.init();
+</script>
+
+<script>
+/**
+ * SUPERTABELA PRO V13 - Firebase Firestore, Multi-Volume e Carga Corporal
+ */
+
+const GRUPO_MUSCULARES = [
+    "Peito", "Costas", "Pernas (Quadríceps)", "Pernas (Posterior)", "Glúteos", 
+    "Ombros", "Bíceps", "Tríceps", "Panturrilha", "Abdômen", "Cardio", "Mobilidade"
+];
+
+const DEFAULT_DB = [
+    { name: "Supino Reto", groups: ["Peito", "Tríceps", "Ombros"], loadType: "Weight" },
+    { name: "Supino Inclinado", groups: ["Peito", "Tríceps", "Ombros"], loadType: "Weight" },
+    { name: "Crucifixo", groups: ["Peito"], loadType: "Weight" },
+    { name: "Puxada Alta", groups: ["Costas", "Bíceps"], loadType: "Weight" },
+    { name: "Remada Curvada", groups: ["Costas", "Bíceps"], loadType: "Weight" },
+    { name: "Agachamento Livre", groups: ["Pernas (Quadríceps)", "Glúteos"], loadType: "Weight" },
+    { name: "Leg Press 45", groups: ["Pernas (Quadríceps)", "Glúteos"], loadType: "Weight" },
+    { name: "Stiff", groups: ["Pernas (Posterior)", "Glúteos"], loadType: "Weight" },
+    { name: "Flexão Inclinada", groups: ["Peito", "Tríceps", "Ombros"], loadType: "Bodyweight" },
+    { name: "Prancha", groups: ["Abdômen"], loadType: "Bodyweight" },
+    { name: "Esteira", groups: ["Cardio"], loadType: "Bodyweight" }
+];
+
+const app = {
+    state: {
+        userId: null,
+        isAuthReady: false,
+        currentWorkoutId: null,
+        currentDayIdx: 0,
+        // Default structure - will be overwritten by Firestore
+        data: { workouts: [], db: [...DEFAULT_DB], history: [], profile: {} }
+    },
+
+    // Inicia o listener de dados do Firestore
+    startDataListener: (userId) => {
+        if (!window.db) return;
+
+        const docRef = window.getUserDocRef(userId);
+        
+        // Listener em tempo real (onSnapshot)
+        window.onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const cloudData = docSnap.data().data; // 'data' is the field name
+                app.state.data = cloudData;
+                
+                // Sanity check and UI update
+                app.checkDataIntegrity();
+                app.updateUIOnDataLoad();
+                app.renderHome();
+
+            } else {
+                // First time user, save default data
+                console.log("Nenhum dado encontrado, salvando dados iniciais.");
+                app.saveData(); 
+                app.updateUIOnDataLoad();
+                app.renderHome();
+            }
+        }, (error) => {
+            console.error("Erro no onSnapshot:", error);
+            document.getElementById('userStatus').innerText = 'Erro de Sinc.';
+        });
+    },
+
+    // Salva o estado atual no Firestore
+    saveData: async () => {
+        if (!app.state.userId || !window.db) return;
+        
+        const docRef = window.getUserDocRef(app.state.userId);
+        
+        try {
+            // Guarda o objeto 'data' dentro de um campo chamado 'data' no documento
+            await window.setDoc(docRef, { data: app.state.data });
+        } catch (e) {
+            console.error("Erro ao salvar no Firestore:", e);
+        }
+    },
+
+    // Migration/Sanity check for data structure
+    checkDataIntegrity: () => {
+         // Ensure DB has loadType and groups is an array
+        if (!app.state.data.db) app.state.data.db = [...DEFAULT_DB];
+        app.state.data.db.forEach(ex => {
+            if(typeof ex.groups === 'string') ex.groups = [ex.groups];
+            if(!ex.loadType) ex.loadType = 'Weight';
+        });
+
+        // Ensure Workouts have correct structure
+        if (!app.state.data.workouts) app.state.data.workouts = [];
+        app.state.data.workouts.forEach(w => {
+            w.days.forEach(d => {
+                d.exercises.forEach(ex => {
+                    if(typeof ex.groups === 'string') ex.groups = [ex.groups];
+                    if(!ex.loadType) ex.loadType = 'Weight';
+                    if(typeof ex.done !== 'number') ex.done = 0;
+                    if(typeof ex.sets !== 'number') ex.sets = 3;
+                });
+            });
+        });
+    },
+
+    updateUIOnDataLoad: () => {
+        const profile = app.state.data.profile;
+        document.getElementById('profName').value = profile.name || '';
+        document.getElementById('profWeight').value = profile.weight || '';
+        document.getElementById('profHeight').value = profile.height || '';
+        document.getElementById('userStatus').innerText = `Logado: ${profile.name || app.state.userId}`;
+    },
+    
+    // Fallback login (if custom token fails or for new user CPF in a restricted env)
+    login: async () => {
+        const cpf = document.getElementById('loginCpf').value.replace(/\D/g,'');
+        if(cpf.length < 3) return alert("CPF inválido");
+        
+        // Use CPF as a specific ID for this environment (not a real auth method, just for data grouping)
+        app.state.userId = cpf; 
+        document.getElementById('userStatus').innerText = `Logado: ${cpf} (Fallback)`;
+        
+        // This is a placeholder for a true login, here we just switch UI
+        app.nav('home');
+        
+        // If logged in via fallback, we cannot use the secure onSnapshot, so we fall back to a manual fetch
+        // (For simplicity in this single file, we rely on the main onAuthStateChanged flow after the initial token/anonymous login)
+        alert("Atenção: Login manual não garante sincronização cloud completa. Recomenda-se usar o acesso automático.");
+    },
+
+    logout: () => {
+        if (window.auth) {
+            window.signOut(window.auth);
+        }
+        app.state.userId = null;
+        app.state.currentWorkoutId = null;
+        app.nav('loading');
+        location.reload(); // Hard refresh to attempt re-auth
+    },
+
+    nav: (view) => {
+        document.querySelectorAll('.container > div').forEach(el => el.classList.add('hidden'));
+        const el = document.getElementById(`view-${view}`);
+        if(el) el.classList.remove('hidden');
+        app.toggleMenu(false);
+    },
+
+    toggleMenu: (show) => {
+        const d = document.getElementById('mainDrawer');
+        const o = document.getElementById('drawerOverlay');
+        if(show) { d.classList.add('open'); o.style.display='block'; }
+        else { d.classList.remove('open'); o.style.display='none'; }
+    },
+
+    // === WORKOUT LOGIC ===
+
+    newWorkoutPrompt: () => {
+        const name = prompt("Nome do Treino (ex: Hipertrofia A):");
+        if(!name) return;
+        const daysQty = parseInt(prompt("Quantos dias na semana (1-7)?", "3"));
+        if(isNaN(daysQty) || daysQty < 1) return;
+
+        const newW = {
+            id: Date.now(),
+            name: name,
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: "",
+            days: []
+        };
+
+        for(let i=0; i<daysQty; i++) {
+            let dayName = `Dia ${i+1}`;
+            let exList = [];
+            
+            if(i > 0) {
+                if(confirm(`Copiar estrutura do Dia ${i} para o Dia ${i+1}?`)) {
+                    exList = JSON.parse(JSON.stringify(newW.days[i-1].exercises));
+                }
+            }
+            
+            const custom = prompt(`Nome para o Dia ${i+1} (Enter para manter '${dayName}'):`);
+            if(custom) dayName = custom;
+
+            newW.days.push({ name: dayName, exercises: exList });
+        }
+
+        app.state.data.workouts.push(newW);
+        app.state.currentWorkoutId = newW.id;
+        app.state.currentDayIdx = 0;
+        app.saveData();
+        app.renderHome();
+    },
+
+    openWorkoutList: () => {
+        const div = document.getElementById('myWorkoutsList');
+        div.innerHTML = '';
+        if(app.state.data.workouts.length === 0) div.innerHTML = 'Nenhum treino.';
+        
+        app.state.data.workouts.forEach(w => {
+            const item = document.createElement('div');
+            item.style.padding = '10px';
+            item.style.borderBottom = '1px solid #eee';
+            item.innerHTML = `
+                <div style="display:flex; justify-content:space-between;">
+                    <strong>${w.name}</strong>
+                    <div>
+                        <button class="btn btn-primary btn-sm" onclick="app.loadWorkout(${w.id})">Abrir</button>
+                        <button class="btn btn-danger btn-sm" onclick="app.deleteWorkout(${w.id})">X</button>
+                    </div>
+                </div>
+            `;
+            div.appendChild(item);
+        });
+        document.getElementById('modalSelectWorkout').style.display = 'flex';
+    },
+
+    loadWorkout: (id) => {
+        app.state.currentWorkoutId = id;
+        app.state.currentDayIdx = 0;
+        app.renderHome();
+        app.closeModal('modalSelectWorkout');
+    },
+
+    deleteWorkout: (id) => {
+        if(confirm("Apagar este treino?")) {
+            app.state.data.workouts = app.state.data.workouts.filter(w => w.id !== id);
+            if (app.state.currentWorkoutId === id) app.state.currentWorkoutId = null;
+            app.saveData();
+            app.openWorkoutList();
+            document.getElementById('workoutContent').classList.add('hidden');
+        }
+    },
+
+    renderHome: () => {
+        const w = app.state.data.workouts.find(x => x.id === app.state.currentWorkoutId);
+        if(!w) {
+            document.getElementById('lblWorkoutName').innerText = "Nenhum";
+            document.getElementById('workoutContent').classList.add('hidden');
+            return;
+        }
+
+        document.getElementById('workoutContent').classList.remove('hidden');
+        document.getElementById('lblWorkoutName').innerText = w.name;
+        document.getElementById('infoModel').innerText = `${w.days.length} Dias`;
+        document.getElementById('infoStart').innerText = w.startDate || '-';
+        document.getElementById('infoEnd').innerText = w.endDate || '-';
+
+        // TABS
+        const tabsDiv = document.getElementById('dayTabs');
+        tabsDiv.innerHTML = '';
+        w.days.forEach((d, i) => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${i === app.state.currentDayIdx ? 'active' : ''}`;
+            btn.innerText = d.name;
+            btn.onclick = () => { app.state.currentDayIdx = i; app.renderHome(); };
+            tabsDiv.appendChild(btn);
+        });
+
+        // CURRENT DAY
+        const day = w.days[app.state.currentDayIdx];
+        document.getElementById('lblCurrentDay').innerText = day.name;
+        
+        // EXERCISE LIST
+        const exDiv = document.getElementById('exerciseList');
+        exDiv.innerHTML = '';
+        
+        if(day.exercises.length === 0) exDiv.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Sem exercícios.</div>';
+
+        day.exercises.forEach((ex, idx) => {
+            const el = document.createElement('div');
+            el.className = 'exercise-item';
+            
+            let targetsHTML = '';
+            for(let t=0; t<ex.sets; t++) {
+                const active = t < ex.done ? 'active' : '';
+                targetsHTML += `<div class="target-dot ${active}" onclick="app.toggleTarget(${idx}, ${t})">✓</div>`;
+            }
+
+            const groupsStr = Array.isArray(ex.groups) ? ex.groups.join(', ') : (ex.groups || 'Geral');
+            const isWeight = ex.loadType === 'Weight';
+            const loadInputStyle = isWeight ? '' : 'display: none;';
+            const loadValue = ex.load || 0;
+
+
+            el.innerHTML = `
+                <div class="ex-info">
+                    <h4>${ex.name}</h4>
+                    <span class="ex-groups">${groupsStr}</span>
+                    <div class="targets">
+                        <span style="font-size:10px; color:#999; margin-right:5px; align-self:center;">Plano:</span>
+                        ${targetsHTML}
+                    </div>
+                </div>
+                <div class="ex-controls">
+                    <div class="control-group">
+                        Sér: <input type="number" value="${ex.sets}" onchange="app.updateEx(${idx}, 'sets', this.value)">
+                    </div>
+                    <div class="control-group">
+                        Rep: <input type="number" value="${ex.reps}" onchange="app.updateEx(${idx}, 'reps', this.value)">
+                    </div>
+                    
+                    <div class="control-group">
+                        <select onchange="app.updateEx(${idx}, 'loadType', this.value)" style="width: auto; font-size:12px; padding:6px; height: 32px;">
+                            <option value="Weight" ${ex.loadType === 'Weight' ? 'selected' : ''}>Kg</option>
+                            <option value="Bodyweight" ${ex.loadType === 'Bodyweight' ? 'selected' : ''}>Corpo</option>
+                        </select>
+                        <input type="number" id="loadInput${idx}" value="${loadValue}" onchange="app.updateEx(${idx}, 'load', this.value)" style="${loadInputStyle} width: 50px; height: 32px;">
+                        ${!isWeight ? '<span style="font-size:12px; font-weight:700; color:var(--text-muted);">PC</span>' : ''}
+                    </div>
+
+                    <button class="btn btn-danger btn-sm" onclick="app.delEx(${idx})">X</button>
+                </div>
+            `;
+            exDiv.appendChild(el);
+        });
+
+        app.calculateVolume(day);
+    },
+
+    // === EXERCISE ACTIONS ===
+
+    updateEx: (idx, field, val) => {
+        const w = app.state.data.workouts.find(x => x.id === app.state.currentWorkoutId);
+        const ex = w.days[app.state.currentDayIdx].exercises[idx];
+        
+        if (field === 'loadType') {
+            ex[field] = val;
+        } else if (field === 'load' || field === 'sets' || field === 'reps') {
+            ex[field] = parseInt(val) || 0;
+            if(field === 'sets' && ex.done > ex.sets) ex.done = ex.sets; // Prevent done > sets
+        }
+
+        app.saveData();
+        app.renderHome(); // Re-render to update UI (like hiding/showing load input) and volume
+    },
+
+    toggleTarget: (idx, targetIdx) => {
+        const w = app.state.data.workouts.find(x => x.id === app.state.currentWorkoutId);
+        const ex = w.days[app.state.currentDayIdx].exercises[idx];
+        
+        // Toggle logic: If user clicks done set, un-do it. Else, set to clicked index + 1
+        if(ex.done === targetIdx + 1) ex.done = targetIdx;
+        else ex.done = targetIdx + 1;
+        
+        app.saveData();
+        app.renderHome(); // Re-render to update the target dots and recalculate volume
+    },
+
+    delEx: (idx) => {
+        if(confirm("Remover?")) {
+            const w = app.state.data.workouts.find(x => x.id === app.state.currentWorkoutId);
+            w.days[app.state.currentDayIdx].exercises.splice(idx, 1);
+            app.saveData();
+            app.renderHome();
+        }
+    },
+
+    // === ADD EXERCISE MODAL ===
+    openAddExModal: () => {
+        document.getElementById('modalAddEx').style.display = 'flex';
+        app.renderAddExList();
+        app.renderManualGroupsCheckboxes();
+    },
+
+    // Renderiza as caixas de seleção para o modal manual
+    renderManualGroupsCheckboxes: () => {
+        const container = document.getElementById('manualExGroupsContainer');
+        container.innerHTML = '';
+        GRUPO_MUSCULARES.forEach(group => {
+            const label = document.createElement('label');
+            label.innerHTML = `
+                <input type="checkbox" value="${group}">
+                <span>${group}</span>
+            `;
+            container.appendChild(label);
+        });
+    },
+
+
+    renderAddExList: () => {
+        const term = document.getElementById('addExSearch').value.toLowerCase();
+        const div = document.getElementById('addExList');
+        div.innerHTML = '';
+        
+        app.state.data.db.filter(x => x.name.toLowerCase().includes(term)).forEach(dbEx => {
+            const row = document.createElement('div');
+            row.style.padding = '8px';
+            row.style.borderBottom = '1px solid #f9f9f9';
+            row.style.cursor = 'pointer';
+            
+            const groupsStr = Array.isArray(dbEx.groups) ? dbEx.groups.join(', ') : (dbEx.groups || 'Geral');
+            const loadTypeStr = dbEx.loadType === 'Bodyweight' ? ' (PC)' : ' (Kg)';
+
+            row.innerHTML = `
+                <b>${dbEx.name}</b> 
+                <small style="color:#888">${loadTypeStr} - ${groupsStr}</small>`;
+            row.onclick = () => {
+                app.addExToDay(dbEx.name, dbEx.groups, dbEx.loadType); 
+                app.closeModal('modalAddEx');
+            };
+            div.appendChild(row);
+        });
+    },
+
+    confirmAddEx: () => {
+        const name = document.getElementById('manualExName').value;
+        const loadType = document.getElementById('manualLoadType').value;
+        
+        // Coleta os grupos selecionados via checkbox
+        const selectedGroups = Array.from(document.querySelectorAll('#manualExGroupsContainer input:checked'))
+                                   .map(cb => cb.value);
+
+        if(name && selectedGroups.length > 0) {
+            app.addExToDay(name, selectedGroups, loadType);
+            
+            // Sugestão: Adicionar ao banco de dados se não existir
+            if(!app.state.data.db.some(ex => ex.name.toLowerCase() === name.toLowerCase())) {
+                if(confirm("Deseja salvar este novo exercício no seu Banco de Dados?")) {
+                    app.state.data.db.push({name: name, groups: selectedGroups, loadType: loadType});
+                    app.saveData();
+                }
+            }
+            
+            app.closeModal('modalAddEx');
+            document.getElementById('manualExName').value = '';
+        } else {
+            alert("Preencha o Nome e selecione pelo menos um Grupo Muscular.");
+        }
+    },
+
+    addExToDay: (name, groups, loadType) => {
+        const w = app.state.data.workouts.find(x => x.id === app.state.currentWorkoutId);
+        w.days[app.state.currentDayIdx].exercises.push({
+            name: name, 
+            groups: Array.isArray(groups) ? groups : [groups], 
+            sets: 3, 
+            reps: 10, 
+            load: 0, 
+            done: 0, // Inicia com 0 séries feitas
+            loadType: loadType || 'Weight' 
+        });
+        app.saveData();
+        app.renderHome();
+    },
+
+    // === VOLUME CALCULATION (Updated to only count ex.done) ===
+    calculateVolume: (day) => {
+        const volMap = {};
+        let simpleTotal = 0; // Total de séries concluídas
+
+        day.exercises.forEach(ex => {
+            const setsCompleted = ex.done || 0; // **Volume é apenas séries CONCLUÍDAS**
+            
+            if (setsCompleted > 0) {
+                // Garante que groups é um array
+                const groups = Array.isArray(ex.groups) ? ex.groups : [ex.groups || 'Geral'];
+                
+                groups.forEach(grp => {
+                    if (grp.trim() === '') return; 
+                    
+                    if(!volMap[grp]) volMap[grp] = 0;
+                    
+                    // Soma as séries concluídas para CADA grupo envolvido
+                    volMap[grp] += setsCompleted; 
+                });
+
+                simpleTotal += setsCompleted;
+            }
+        });
+        
+        let sortedVolumes = Object.entries(volMap)
+            .sort(([, a], [, b]) => b - a); // Ordena por volume decrescente
+
+        const chart = document.getElementById('volumeChart');
+        let html = `<ul class="volume-list">`;
+        
+        sortedVolumes.forEach(([grp, val]) => {
+            html += `<li><span>${grp}</span> <strong>${val} Séries</strong></li>`;
+        });
+        
+        if (sortedVolumes.length === 0) {
+             html += `<li><span style="color:var(--text-muted);">Assinale as séries concluídas para ver o volume.</span></li>`;
+        }
+
+        html += `<li style="border-top:2px solid #eee; margin-top:5px; padding-top:5px;"><span>TOTAL SÉRIES CONCLUÍDAS</span> <strong>${simpleTotal}</strong></li></ul>`;
+        chart.innerHTML = html;
+    },
+
+    // === FINISH SESSION ===
+    finishSession: () => {
+        const w = app.state.data.workouts.find(x => x.id === app.state.currentWorkoutId);
+        if (!w) return;
+        
+        const day = w.days[app.state.currentDayIdx];
+        
+        let doneCount = 0;
+        day.exercises.forEach(ex => { 
+            doneCount += ex.done; 
+            ex.done = 0; // Reset
+        });
+
+        if(doneCount === 0) return alert("Nada feito hoje? Assinale as séries concluídas para finalizar.");
+
+        app.state.data.history.unshift({
+            date: new Date().toLocaleDateString('pt-BR'),
+            workout: w.name,
+            day: day.name,
+            volume: doneCount // Total de sets feitos
+        });
+        
+        if(app.state.data.history.length > 50) app.state.data.history.pop();
+        
+        app.saveData();
+        app.renderHome();
+        alert("Treino salvo e finalizado! Os dados estão na nuvem.");
+    },
+
+    // === UTILS ===
+    closeModal: (id) => document.getElementById(id).style.display = 'none',
+    
+    // DB
+    renderDB: () => {
+        const term = document.getElementById('dbSearch').value.toLowerCase();
+        const div = document.getElementById('dbList');
+        div.innerHTML = '';
+        app.state.data.db.filter(x => x.name.toLowerCase().includes(term)).forEach((ex, i) => {
+            const r = document.createElement('div');
+            r.className = 'card'; r.style.padding = '10px'; r.style.marginBottom = '10px';
+            
+            const groupsStr = Array.isArray(ex.groups) ? ex.groups.join(', ') : (ex.groups || 'Geral');
+            const loadTypeStr = ex.loadType === 'Bodyweight' ? 'Peso Corporal' : 'Carga Adicional (Kg)';
+
+            r.innerHTML = `
+                <b>${ex.name}</b> <small>(${groupsStr}) - ${loadTypeStr}</small>
+                <button style="float:right;" class="btn btn-danger btn-sm" onclick="app.remDB(${i})">X</button>
+            `;
+            div.appendChild(r);
+        });
+    },
+    addToDBPrompt: () => {
+        // Since we cannot use the complex checkbox UI in a prompt, we'll guide the user.
+        const n = prompt("Nome do Exercício:"); if(!n) return;
+        const gStr = prompt("Grupos Musculares (Obrigatório! Separados por vírgula - Ex: Peito, Tríceps):", "Geral");
+        if(!gStr) return alert("Os grupos musculares são obrigatórios para o cálculo de volume.");
+
+        const lType = confirm("Este exercício usa Carga Adicional (halteres/máquina)?\nOK para SIM (Kg), CANCELAR para NÃO (Peso Corporal).") ? 'Weight' : 'Bodyweight';
+        
+        const groups = gStr.split(',').map(g => g.trim()).filter(g => g.length > 0);
+        
+        app.state.data.db.push({name:n, groups:groups, loadType: lType});
+        app.saveData(); app.renderDB();
+    },
+    remDB: (i) => {
+        if(confirm("Tem certeza que deseja remover este exercício do banco de dados?")) {
+            app.state.data.db.splice(i,1);
+            app.saveData(); app.renderDB();
+        }
+    },
+
+    // PROFILE
+    saveProfile: () => {
+        app.state.data.profile = {
+            name: document.getElementById('profName').value,
+            weight: document.getElementById('profWeight').value,
+            height: document.getElementById('profHeight').value
+        };
+        app.saveData(); 
+        document.getElementById('userStatus').innerText = `Logado: ${app.state.data.profile.name || app.state.userId} (Sincronizado)`;
+        alert("Perfil salvo e sincronizado na nuvem.");
+    },
+    
+    editWorkoutMeta: () => {
+        const w = app.state.data.workouts.find(x => x.id === app.state.currentWorkoutId);
+        const s = prompt("Data Início (YYYY-MM-DD):", w.startDate);
+        const e = prompt("Data Fim (YYYY-MM-DD):", w.endDate);
+        if(s) w.startDate = s;
+        if(e) w.endDate = e;
+        app.saveData(); app.renderHome();
+    }
+};
+
+// === TIMER LOGIC (Unchanged) ===
+const timer = {
+    interval: null,
+    seconds: 60,
+    current: 60,
+    audioCtx: null,
+    
+    config: () => {
+        const t = prompt("Tempo em segundos:", timer.seconds);
+        if(t && !isNaN(t)) {
+            timer.seconds = parseInt(t);
+            timer.reset();
+        }
+    },
+    
+    reset: () => {
+        timer.stop();
+        timer.current = timer.seconds;
+        timer.updateDisplay();
+    },
+    
+    start: () => {
+        if(timer.interval) return;
+        if(!timer.audioCtx) timer.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        timer.interval = setInterval(() => {
+            timer.current--;
+            timer.updateDisplay();
+            if(timer.current <= 0) {
+                timer.beep();
+                timer.reset();
+            }
+        }, 1000);
+    },
+    
+    stop: () => {
+        clearInterval(timer.interval);
+        timer.interval = null;
+        timer.current = timer.seconds; 
+        timer.updateDisplay();
+    },
+    
+    updateDisplay: () => {
+        const m = Math.floor(timer.current / 60).toString().padStart(2, '0');
+        const s = (timer.current % 60).toString().padStart(2, '0');
+        document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+    },
+    
+    beep: () => {
+        if(!timer.audioCtx) return;
+        if (timer.audioCtx.state === 'suspended') {
+            timer.audioCtx.resume();
+        }
+        
+        const osc = timer.audioCtx.createOscillator();
+        const gain = timer.audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(timer.audioCtx.destination);
+        osc.frequency.value = 800;
+        osc.start();
+        setTimeout(() => osc.stop(), 500); 
+        const d = document.getElementById('timerDisplay');
+        d.style.color = 'red';
+        setTimeout(() => d.style.color = '#fbbf24', 1000);
+    }
+};
+
+</script>
+</body>
+</html>
