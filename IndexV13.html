@@ -121,16 +121,14 @@
 </head>
 <body>
 
-<!-- HEADER -->
 <header>
     <div style="display:flex; align-items:center; gap:10px;">
         <button class="btn btn-secondary btn-sm" onclick="app.toggleMenu(true)">☰</button>
         <h1 style="font-size:18px; color:var(--primary);">SuperTabela V13</h1>
     </div>
-    <div id="userStatus" style="font-size:12px; font-weight:600;">Carregando...</div>
+    <div id="userStatus" style="font-size:12px; font-weight:600;">Desconectado</div>
 </header>
 
-<!-- MENU LATERAL -->
 <div class="drawer-overlay" id="drawerOverlay" onclick="app.toggleMenu(false)"></div>
 <div class="drawer" id="mainDrawer">
     <h2 style="margin-bottom:20px;">Menu</h2>
@@ -145,25 +143,20 @@
 
 <div class="container">
 
-    <!-- LOADING SCREEN -->
     <div id="view-loading" class="card" style="max-width:400px; margin:40px auto; text-align:center;">
-        <h2 style="margin-bottom:10px;">Conectando ao Cloud...</h2>
-        <p>Aguarde a sincronização dos seus dados.</p>
+        <h2 style="margin-bottom:10px;">Carregando...</h2>
+        <p>Aguarde a inicialização do sistema.</p>
     </div>
 
-    <!-- LOGIN SCREEN (Fallback) -->
     <div id="view-login" class="card hidden" style="max-width:400px; margin:40px auto;">
-        <h2 style="text-align:center; margin-bottom:20px;">Acesso (Offline)</h2>
-        <p style="margin-bottom:15px; color:var(--danger);">Se você vir esta tela, o login automático falhou. Tente novamente.</p>
+        <h2 style="text-align:center; margin-bottom:20px;">Acesso (Sincronizado via CPF)</h2>
         <label>CPF (Apenas números)</label>
         <input type="tel" id="loginCpf" placeholder="000.000.000-00" style="margin-bottom:10px;">
-        <button class="btn btn-primary w-100" onclick="app.login()">Entrar</button>
+        <button class="btn btn-primary w-100" onclick="app.login()">Entrar e Sincronizar</button>
     </div>
 
-    <!-- MAIN DASHBOARD -->
     <div id="view-home" class="hidden">
         
-        <!-- TIMER BAR -->
         <div class="timer-bar">
             <div>
                 <span style="font-size:10px; opacity:0.7;">DESCANSOMETRO</span>
@@ -176,7 +169,6 @@
             </div>
         </div>
 
-        <!-- CONTROLS -->
         <div class="card" style="padding:15px; display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <span style="font-size:12px; color:var(--text-muted);">Treino:</span>
@@ -191,7 +183,6 @@
         <div id="workoutContent" class="hidden">
             <div class="main-grid">
                 
-                <!-- LEFT COLUMN: EXERCISES -->
                 <div>
                     <div class="workout-tabs" id="dayTabs"></div>
 
@@ -210,7 +201,6 @@
                     </div>
                 </div>
 
-                <!-- RIGHT COLUMN: VOLUME & STATS -->
                 <div>
                     <div class="card">
                         <h3>📊 Volume (Séries Concluídas)</h3>
@@ -231,7 +221,6 @@
         </div>
     </div>
 
-    <!-- EXERCISE DB VIEW -->
     <div id="view-exercises" class="hidden">
         <div class="card">
             <h3>Banco de Exercícios</h3>
@@ -243,7 +232,6 @@
         </div>
     </div>
 
-    <!-- HISTORY VIEW -->
     <div id="view-history" class="hidden">
         <div class="card">
             <h3>Histórico</h3>
@@ -251,7 +239,6 @@
         </div>
     </div>
 
-    <!-- PROFILE VIEW -->
     <div id="view-profile" class="hidden">
         <div class="card">
             <h3>Perfil</h3>
@@ -265,7 +252,6 @@
 
 </div>
 
-<!-- MODALS -->
 <div id="modalSelectWorkout" class="modal">
     <div class="modal-content">
         <h3>Meus Treinos</h3>
@@ -279,18 +265,15 @@
         <h3>Adicionar Exercício</h3>
         <input type="text" id="addExSearch" placeholder="Filtrar..." onkeyup="app.renderAddExList()" style="margin-bottom:10px;">
         
-        <!-- Lista do Banco de Dados -->
         <div id="addExList" style="max-height:200px; overflow-y:auto; border:1px solid #eee; margin-bottom:10px;"></div>
         
-        <!-- Adição Manual (com Checkboxes) -->
         <div style="border-top:1px solid #eee; padding-top:10px;">
             <label style="font-size:12px; font-weight:600;">Adicionar Manualmente</label>
             <input type="text" id="manualExName" placeholder="Nome do exercício" style="margin-bottom:10px;">
             
             <label style="font-size:12px; font-weight:600;">Grupos Musculares</label>
             <div id="manualExGroupsContainer" class="checkbox-group">
-                <!-- Checkboxes serão injetados aqui -->
-            </div>
+                </div>
             
             <label style="font-size:12px; font-weight:600;">Tipo de Carga</label>
             <select id="manualLoadType" style="margin-bottom:10px;">
@@ -306,69 +289,55 @@
     </div>
 </div>
 
-<!-- Firebase Imports -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    // Removido getAuth, signInAnonymously, onAuthStateChanged, signOut - não usaremos Auth.
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
     
-    // setLogLevel('Debug'); // Para debug do Firestore
-
     // Global variables from Canvas environment
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    // Alteração: Usaremos localStorage para persistir o CPF do usuário logado.
+    const LAST_LOGGED_CPF_KEY = 'st_last_cpf';
+
+    // O objeto firebaseConfig deve ser injetado no ambiente de hospedagem.
+    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}'); 
 
     if (Object.keys(firebaseConfig).length > 0) {
         const firebaseApp = initializeApp(firebaseConfig);
         window.db = getFirestore(firebaseApp);
-        window.auth = getAuth(firebaseApp);
     } else {
-        console.error("Firebase Configuração não encontrada.");
+        console.error("Firebase Configuração não encontrada. O app funcionará apenas no modo local/fallback.");
     }
     
-    // Function to get the correct Firestore document reference
+    // Função para obter a referência CORRETA do documento, usando o CPF como USER_ID.
     window.getUserDocRef = (userId) => {
-        // Path: /artifacts/{appId}/users/{userId}/data/{docId}
+        // Path: /artifacts/{appId}/users/{CPF_ID}/data/{docId}
         return doc(window.db, `artifacts/${appId}/users/${userId}/data/userData`);
     };
 
-    // Replace old localStorage init with Firebase Auth listener
+    // Nova função de inicialização: Verifica se há CPF no localStorage
     window.appInit = async () => {
-        if (!window.auth) {
+        // Se o Firebase não estiver configurado, forçamos para a tela de login.
+        if (!window.db) {
             app.nav('login');
             return;
         }
 
-        onAuthStateChanged(window.auth, async (user) => {
-            if (user) {
-                app.state.userId = user.uid;
-                app.state.isAuthReady = true;
-                document.getElementById('lblUserId').innerText = user.uid;
-                document.getElementById('userStatus').innerText = 'Online (Sincronizado)';
-                app.nav('home');
-                
-                // Start listening for real-time data changes
-                app.startDataListener(user.uid);
-            } else {
-                try {
-                    // Sign in anonymously if no user is found (initial state or explicit sign out)
-                    await signInAnonymously(window.auth);
-                } catch (error) {
-                    console.error("Erro ao tentar login anônimo:", error);
-                    app.nav('login');
-                }
-            }
-        });
+        // Tenta carregar o último CPF logado
+        const lastCpf = localStorage.getItem(LAST_LOGGED_CPF_KEY);
 
-        // Use custom token for secure sign-in if available
-        if (initialAuthToken) {
-            try {
-                await signInWithCustomToken(window.auth, initialAuthToken);
-            } catch (error) {
-                console.warn("Erro ao usar token customizado, caindo para anônimo:", error);
-            }
+        if (lastCpf) {
+            app.state.userId = lastCpf;
+            app.state.isAuthReady = true; // Renomeado para isDataReady
+            document.getElementById('lblUserId').innerText = lastCpf;
+            document.getElementById('userStatus').innerText = 'Online (Sincronizado)';
+            
+            // Inicia o listener de dados para o CPF
+            app.startDataListener(lastCpf);
+            app.nav('home');
+        } else {
+            // Se não houver CPF, vai para a tela de login manual
+            app.nav('login');
         }
     };
 
@@ -399,6 +368,9 @@ const DEFAULT_DB = [
     { name: "Prancha", groups: ["Abdômen"], loadType: "Bodyweight" },
     { name: "Esteira", groups: ["Cardio"], loadType: "Bodyweight" }
 ];
+
+// Chave para armazenar o último CPF logado no localStorage
+const LAST_LOGGED_CPF_KEY = 'st_last_cpf';
 
 const app = {
     state: {
@@ -437,6 +409,8 @@ const app = {
         }, (error) => {
             console.error("Erro no onSnapshot:", error);
             document.getElementById('userStatus').innerText = 'Erro de Sinc.';
+            alert("Erro de sincronização. Tente logar novamente.");
+            app.nav('login');
         });
     },
 
@@ -482,34 +456,36 @@ const app = {
         document.getElementById('profName').value = profile.name || '';
         document.getElementById('profWeight').value = profile.weight || '';
         document.getElementById('profHeight').value = profile.height || '';
-        document.getElementById('userStatus').innerText = `Logado: ${profile.name || app.state.userId}`;
+        document.getElementById('userStatus').innerText = `Logado: ${profile.name || app.state.userId} (Sincronizado)`;
+        document.getElementById('lblUserId').innerText = app.state.userId; // Atualiza o ID na tela Perfil
     },
     
-    // Fallback login (if custom token fails or for new user CPF in a restricted env)
+    // NOVO Login
     login: async () => {
         const cpf = document.getElementById('loginCpf').value.replace(/\D/g,'');
         if(cpf.length < 3) return alert("CPF inválido");
         
-        // Use CPF as a specific ID for this environment (not a real auth method, just for data grouping)
-        app.state.userId = cpf; 
-        document.getElementById('userStatus').innerText = `Logado: ${cpf} (Fallback)`;
+        // 1. Define o CPF como o ID de usuário principal
+        app.state.userId = cpf;
         
-        // This is a placeholder for a true login, here we just switch UI
+        // 2. Persiste o CPF no localStorage para acesso futuro
+        localStorage.setItem(LAST_LOGGED_CPF_KEY, cpf);
+        
+        // 3. Inicia o listener de dados para este CPF/ID
+        app.startDataListener(cpf);
+
+        // 4. Navega para a tela principal
         app.nav('home');
-        
-        // If logged in via fallback, we cannot use the secure onSnapshot, so we fall back to a manual fetch
-        // (For simplicity in this single file, we rely on the main onAuthStateChanged flow after the initial token/anonymous login)
-        alert("Atenção: Login manual não garante sincronização cloud completa. Recomenda-se usar o acesso automático.");
+        document.getElementById('userStatus').innerText = `Sincronizando...`;
     },
 
     logout: () => {
-        if (window.auth) {
-            window.signOut(window.auth);
-        }
+        // Limpa o localStorage para forçar o login na próxima vez
+        localStorage.removeItem(LAST_LOGGED_CPF_KEY);
         app.state.userId = null;
         app.state.currentWorkoutId = null;
         app.nav('loading');
-        location.reload(); // Hard refresh to attempt re-auth
+        location.reload(); // Hard refresh
     },
 
     nav: (view) => {
@@ -1022,4 +998,5 @@ const timer = {
 
 </script>
 </body>
+
 </html>
